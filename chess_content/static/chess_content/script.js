@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
         const x = event.clientX;
         const y = event.clientY;
         
+        console.log(`X:${x} Y:${y}`)
+        
         if (x >= boardX && x <= boardX + 8 * squareWidth && y <= boardY + 8 * squareHeight && y >= boardY) {
             const colIdx = Math.floor((x - boardX) / squareWidth);
             const rowIdx = 7 - Math.floor((y - boardY) / squareHeight); // 7 minus because chess rows start from bottom to top
@@ -19,6 +21,29 @@ document.addEventListener('DOMContentLoaded', (event) => {
             const rowNumber = rowIdx + 1; // Convert 0-7 to 1-8
 
             console.log(`${colLetter}${rowNumber}`);
+
+            // Correct Y value
+            const Yval = Math.floor((y - boardY) / squareHeight);
+
+            // Get the center of the clicked square
+            
+            const squareCenterX = boardX + colIdx * squareWidth + squareWidth / 2;
+            const squareCenterY = boardY + Yval * squareHeight + squareHeight / 2;
+
+            console.log(`X:${squareCenterX} Y:${squareCenterY}`)
+
+            // Duplicate the image at the center of the clicked square
+            const image = document.querySelector(".chess_pieces");
+            if (image) {
+                const imageDuplicate = image.cloneNode(true);
+                imageDuplicate.style.position = "absolute";
+                imageDuplicate.style.left = `${squareCenterX - image.width / 2 - 5}px`;
+                imageDuplicate.style.top = `${squareCenterY - image.height + image.height / 2 - 5}px`;
+                imageDuplicate.style.zIndex = "9999"; // To ensure it's above other elements
+                
+                document.body.appendChild(imageDuplicate);
+
+            }
         }
     });
 
@@ -39,12 +64,14 @@ function startDrag(event) {
         return;
     }
 
+    event.target.classList.add("animate-background");
+
     // Change the background color of the original piece.
-    event.target.style.backgroundColor = "#139feb";
+    event.target.style.backgroundColor = "#139feb93";
 
-    const originalPiece = event.target;
+    const original_piece = event.target;
 
-    activePiece = originalPiece.cloneNode(true);
+    activePiece = original_piece.cloneNode(true);
     document.body.appendChild(activePiece);
 
     // Make sure the cloned activePiece doesn't have the red background.

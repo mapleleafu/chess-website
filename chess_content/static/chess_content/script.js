@@ -5,10 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
 let activePiece = null;
+
 const boardRect = document.querySelector(".memory_board").getBoundingClientRect(); 
 
 let previouslyClickedPiece = null;
+
 
 function choosePiece(event) {
     if (activePiece) {
@@ -45,12 +48,15 @@ function choosePiece(event) {
 
     document.addEventListener("mousemove", movePiece);
 }
+
+
 function movePiece(event) {
     if (!activePiece) return;
 
     activePiece.style.left = `${event.clientX - activePiece.width / 2}px`;
     activePiece.style.top = `${event.clientY - activePiece.height / 2}px`;
 }
+
 
 document.querySelector(".memory_board").addEventListener("click", placePiece);
 
@@ -84,7 +90,7 @@ function placePiece(event) {
 }
 
 
-document.addEventListener('dblclick', function(event) {
+document.addEventListener('click', function(event) {
     if (event.target.classList.contains('duplicate-piece')) {
         document.body.removeChild(event.target);
     }

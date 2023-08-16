@@ -16,7 +16,9 @@ body {
     margin: 0 15px;
     text-decoration: none;
 }
-
+.memory_board{
+    size:20px;
+}
 .nav-item a:hover {
     text-decoration: underline;
 }
@@ -29,6 +31,7 @@ body {
 }
 
 .memory_board {
+    position: relative;
     width: 720px;
     height: 720px;
     margin: 20px 0; 

@@ -6,15 +6,15 @@
     <div class="black_chess_pieces">
         <img src="{% static 'chess_content/assets/cursor.png' %}" draggable="true" alt="cursor" class="cursor">
         {% for piece in black_piece_filenames %}
-            <div class="original_pieces">
-                <img src="{% static 'chess_content/assets/pieces/'|add:piece %}" draggable="true" alt="{{ piece }}" class="chess_pieces">
-            </div>
+        <div class="original_pieces">
+            <img src="{% static 'chess_content/assets/pieces/'|add:piece %}" draggable="true" alt="{{ piece }}" class="chess_pieces">
+        </div>
         {% endfor %}
         <img src="{% static 'chess_content/assets/trash.png' %}" draggable="true" alt="trash" class="trash">
     </div>
-
-    <img src="{% static 'chess_content/assets/board.png' %}" draggable="false" alt="board" class="memory_board">
-
+    <div class="board-container">
+        <img src="{% static 'chess_content/assets/board.png' %}" draggable="false" alt="board" class="memory_board">
+    </div>
     <div class="white_chess_pieces">
         <img src="{% static 'chess_content/assets/cursor.png' %}" draggable="true" alt="cursor" class="cursor">
         {% for piece in white_piece_filenames %}

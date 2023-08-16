@@ -3,15 +3,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const boardRect = board.getBoundingClientRect();
     const boardX = boardRect.left;
     const boardY = boardRect.top;
-
-    const squareWidth = document.querySelector('.chess_pieces').width;
+    
     const squareHeight = document.querySelector('.chess_pieces').height;
-
+    const squareWidth = document.querySelector('.chess_pieces').width;
+    
     document.addEventListener('click', function(event) {
         const x = event.clientX;
         const y = event.clientY;
         
-        console.log(`X:${x} Y:${y}`)
         
         if (x >= boardX && x <= boardX + 8 * squareWidth && y <= boardY + 8 * squareHeight && y >= boardY) {
             const colIdx = Math.floor((x - boardX) / squareWidth);
@@ -27,21 +26,28 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
             // Get the center of the clicked square
             
-            const squareCenterX = boardX + colIdx * squareWidth + squareWidth / 2;
-            const squareCenterY = boardY + Yval * squareHeight + squareHeight / 2;
+            const squareCenterX = colIdx * squareWidth + squareWidth / 2;
+            const squareCenterY = Yval * squareHeight + squareHeight / 2;
 
+            console.log(`X:${x} Y:${y}`)
             console.log(`X:${squareCenterX} Y:${squareCenterY}`)
-
+            
+            
+            
             // Duplicate the image at the center of the clicked square
             const image = document.querySelector(".chess_pieces");
             if (image) {
                 const imageDuplicate = image.cloneNode(true);
                 imageDuplicate.style.position = "absolute";
-                imageDuplicate.style.left = `${squareCenterX - image.width / 2 - 5}px`;
-                imageDuplicate.style.top = `${squareCenterY - image.height + image.height / 2 - 5}px`;
-                imageDuplicate.style.zIndex = "9999"; // To ensure it's above other elements
+                imageDuplicate.style.left = `${squareCenterX - image.width / 2 + boardRect.left}px`;
+                imageDuplicate.style.top = `${squareCenterY - image.height / 2 + boardRect.top}px`;                
+                imageDuplicate.style.width = "90px"; 
+                imageDuplicate.style.height= "90px"; 
+                imageDuplicate.style.border = "0px solid"; 
+                imageDuplicate.style.zIndex = "9999"; 
                 
-                document.body.appendChild(imageDuplicate);
+                const boardContainer = document.querySelector(".board-container");
+                // boardContainer.appendChild(imageDuplicate);
 
             }
         }
@@ -52,7 +58,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         piece.addEventListener("mousedown", startDrag);
     }
 });
-
 
 
 
@@ -87,20 +92,40 @@ function startDrag(event) {
 
 function duplicatePiece(event) {
     // Clone the active piece and append it to the body to leave it where it was double-clicked.
-    const duplicate = activePiece.cloneNode(true);
-    document.body.appendChild(duplicate);
-
-    board_width = document.querySelector(".memory_board").width;
-    board_height = document.querySelector(".memory_board").height;
-
+    const board = document.querySelector(".memory_board");
+    const boardRect = board.getBoundingClientRect();
     
+    const squareHeight = activePiece.height;
+    const squareWidth = activePiece.width;
 
-    // Set the left and top styles of the duplicate to match the activePiece's current position.
-    duplicate.style.left = activePiece.style.left;
-    duplicate.style.top = activePiece.style.top;
+    const boardX = boardRect.left;
+    const boardY = boardRect.top;
 
+    const x = event.clientX;
+    const y = event.clientY;
+
+    const Xcord = Math.floor((x - boardX) / squareWidth);
+    const Ycord = Math.floor((y - boardY) / squareHeight);
+
+    const squareCenterX = Xcord * squareWidth + squareWidth / 2;
+    const squareCenterY = Ycord * squareHeight + squareHeight / 2;
+
+    const duplicate = activePiece.cloneNode(true);
+    duplicate.classList.add("chess_pieces");
+    duplicate.style.position = "absolute";
+    duplicate.style.left = `${squareCenterX - activePiece.width / 2 + boardRect.left}px`;
+    duplicate.style.top = `${squareCenterY - activePiece.height / 2 + boardRect.top}px`;                
+    duplicate.style.width = "90px"; 
+    duplicate.style.height= "90px"; 
+    duplicate.style.border = "0px solid"; 
+    duplicate.style.zIndex = "9999"; 
+    
     // Ensure the duplicate doesn't inherit any background.
     duplicate.style.backgroundColor = "";
+    
+    document.body.appendChild(duplicate);
+
+
 }
 
 function movePiece(event) {

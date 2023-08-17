@@ -16,12 +16,15 @@ body {
     margin: 0 15px;
     text-decoration: none;
 }
-.memory_board{
-    size:20px;
-}
+
 .nav-item a:hover {
     text-decoration: underline;
 }
+
+.memory_board{
+    size:20px;
+}
+
 
 .content-container {
     display: flex;
@@ -35,48 +38,69 @@ body {
     width: 720px;
     height: 720px;
     margin: 20px 0; 
+    user-select: none;
 }
 
 .chess_pieces {
     width: 100px;
     height: 100px;
-    border: 5px solid transparent;  /* Added this line */
-
+    border: 5px solid transparent; 
 }
 
 .trash,
 .cursor {   
-    width: 60px;
-    height: 60px;
-    margin: 5px; 
+    width: 75px;
+    height: 100px;
+    border-top: 10px solid transparent; 
+    border-bottom: 10px solid transparent;
 }
-
 
 .black_chess_pieces,
 .white_chess_pieces {
+    border-radius: 10px;
     background-color: gray;
     display: flex;
     align-items: center; /* Center children horizontally */
 }    
 
 .animate-background {
-    transition: background-color 0.6s ease; 
+    transition: background-color 0.6s ease;
+
+}
+
+.animate-background:hover {
+    border-radius: 10px;
 }
 
 .original_pieces:hover {
-    transform: scale(1.1); 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
-    background-color: #139feb36
+    border-radius: 10px;
+    transform: scale(1.1);
+    width: 90.4px;
+    height: 90.4px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    background-color: #139feb36;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.cursor:hover,
+.trash:hover {
+    border-radius: 10px;
+    transform: scale(1.1);
+    width: 75.4px;
+    height: 90.45px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .cursor:hover {
-    transform: scale(1.1); 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
-    background-color: #17862673
+    background-color: #17862673;
 }
 
 .trash:hover {
-    transform: scale(1.1); 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
-    background-color: #c21c1c73
+    background-color: #c21c1c73;
 }
+

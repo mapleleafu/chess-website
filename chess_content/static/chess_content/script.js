@@ -38,6 +38,7 @@ function choosePiece(event) {
     } else if (event.target.className == "trash") {
         clickedPiece.classList.add("animate-background");
         clickedPiece.style.backgroundColor = "#f57878f6";
+        clickedPiece.setAttribute("draggable", "false");
     }
     
     previouslyClickedPiece = clickedPiece;  // Store the reference to the current clicked piece for future use
@@ -53,6 +54,7 @@ function choosePiece(event) {
         backgroundColor: "",   // Remove inherited background color
         border: "0px"
     });
+
     document.body.appendChild(activePiece);
     movePiece(event);  // Position it immediately
 
@@ -113,13 +115,10 @@ function placePiece(event) {
         });
         
         duplicate.classList.add('duplicate-piece');  // Assign a specific class to each duplicated piece
-        
+        duplicate.setAttribute("draggable", "true"); // Allow dragging on the duplicate piece
         document.body.appendChild(duplicate);
     }
 }
-
-
-
 
 
 document.addEventListener('click', function(event) {

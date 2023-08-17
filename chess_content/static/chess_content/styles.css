@@ -21,11 +21,6 @@ body {
     text-decoration: underline;
 }
 
-.memory_board{
-    size:20px;
-}
-
-
 .content-container {
     display: flex;
     flex-direction: column; /* Stack children vertically */
@@ -33,12 +28,25 @@ body {
     padding: 20px;
 }
 
-.memory_board {
+.memory_board, .memory_board * {
     position: relative;
     width: 720px;
     height: 720px;
     margin: 20px 0; 
     user-select: none;
+    -webkit-user-drag: none;
+}
+
+.board-container {
+    position: relative;
+}
+
+.pieces-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .chess_pieces {
@@ -57,6 +65,8 @@ body {
 
 .black_chess_pieces,
 .white_chess_pieces {
+    user-select: none;
+    -webkit-user-drag: none;
     border-radius: 10px;
     background-color: gray;
     display: flex;
@@ -103,4 +113,3 @@ body {
 .trash:hover {
     background-color: #c21c1c73;
 }
-

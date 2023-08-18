@@ -144,24 +144,3 @@ document.addEventListener('click', function(event) {
         }
     }
 });
-
-
-const memoryBoard = document.querySelector(".memory_board");
-const rect = memoryBoard.getBoundingClientRect();
-const first_load_top = memoryBoard.getBoundingClientRect().top;
-const first_load_left = memoryBoard.getBoundingClientRect().left;
-const duplicates = document.getElementsByClassName(".chess_pieces animate-background duplicate-piece")
-
-function logBoundingClientRect() {
-    const rect = memoryBoard.getBoundingClientRect();
-    for (let duplicate of duplicates) {
-        duplicate.style.left = duplicate.style.left + (rect.top - first_load_top)
-        duplicate.style.top = duplicate.style.top + (rect.left - first_load_left)
-    }
-    console.log(rect.top);
-    console.log(rect.left);
-}
-
-window.addEventListener('scroll', logBoundingClientRect);
-window.addEventListener('resize', logBoundingClientRect);
-

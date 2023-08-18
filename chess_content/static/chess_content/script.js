@@ -11,8 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 let activePiece = null;
-
-
 let previouslyClickedPiece = null;
 
 
@@ -62,7 +60,6 @@ function choosePiece(event) {
 }
 
 
-
 function movePiece(event) {
     if (!activePiece) return;
 
@@ -70,12 +67,15 @@ function movePiece(event) {
     activePiece.style.top = `${event.clientY + window.scrollY - activePiece.height / 2}px`;
 }
 
+
 let lastMouseEvent = null;
+
 
 document.addEventListener('mousemove', (event) => {
     lastMouseEvent = event;
 });
 
+// Smooth scrolling when a piece is selected
 document.addEventListener('scroll', function() {
     if (activePiece && lastMouseEvent) {
         activePiece.style.left = `${lastMouseEvent.clientX + window.scrollX - activePiece.width / 2}px`;
@@ -89,8 +89,10 @@ document.querySelector(".memory_board").addEventListener("click", placePiece);
 function placePiece(event) {
     if (!activePiece || activePiece.className == "trash animate-background") return;
 
-    // Calculate the boardRect here, inside the placePiece function
     const boardRect = document.querySelector(".memory_board").getBoundingClientRect();
+
+    const boardContainer = document.querySelector(".board-container");
+
 
     const { left: boardX, top: boardY } = boardRect;
 
@@ -101,28 +103,65 @@ function placePiece(event) {
     const squareWidth = activePiece.width;  
     const squareHeight = activePiece.height;
 
-    if (x >= boardX + window.scrollX && x <= boardX + window.scrollX + 8 * squareWidth && y <= boardY + window.scrollY + 8 * squareHeight && y >= boardY + window.scrollY) {
+    if (x >= boardX && x <= boardX + 8 * squareWidth && y <= boardY + 8 * squareHeight && y >= boardY) {
         const [Xcord, Ycord] = [Math.floor((x - boardX - window.scrollX) / squareWidth), Math.floor((y - boardY - window.scrollY) / squareHeight)];
         const squareCenter = [Xcord * squareWidth + squareWidth / 2, Ycord * squareHeight + squareHeight / 2];
         
         const duplicate = activePiece.cloneNode(true);
+
+        const boardContainerRect = boardContainer.getBoundingClientRect();
+
         Object.assign(duplicate.style, {
             position: "absolute",
-            left: `${squareCenter[0] - squareWidth / 2 + boardX + window.scrollX}px`,
-            top: `${squareCenter[1] - squareHeight / 2 + boardY + window.scrollY}px`,
+            left: `${squareCenter[0] - squareWidth / 2 + boardX - boardContainerRect.left}px`,  
+            top: `${squareCenter[1] - squareHeight / 2 + boardY - boardContainerRect.top}px`,  
             zIndex: "9997",
-            pointerEvents: "auto"  // Allow events on the duplicate
+            pointerEvents: "auto"
         });
         
         duplicate.classList.add('duplicate-piece');  // Assign a specific class to each duplicated piece
         duplicate.setAttribute("draggable", "true"); // Allow dragging on the duplicate piece
-        document.body.appendChild(duplicate);
+        boardContainer.appendChild(duplicate);
+
     }
 }
 
 
 document.addEventListener('click', function(event) {
     if (event.target.classList.contains('duplicate-piece')) {
-        document.body.removeChild(event.target);
+        const boardContainer = document.querySelector(".board-container");
+
+        if (activePiece.src === event.target.src) {
+            // If the clicked duplicate piece is the same as the active piece
+            boardContainer.removeChild(event.target);
+        } else if (activePiece) {
+            // If there's an active piece and you click on another duplicate piece
+            boardContainer.removeChild(event.target);
+            placePiece(event); // Put down the active piece
+        } else {
+            // If there's no active piece and you click on a duplicate piece
+            boardContainer.removeChild(event.target);
+        }
     }
 });
+
+
+const memoryBoard = document.querySelector(".memory_board");
+const rect = memoryBoard.getBoundingClientRect();
+const first_load_top = memoryBoard.getBoundingClientRect().top;
+const first_load_left = memoryBoard.getBoundingClientRect().left;
+const duplicates = document.getElementsByClassName(".chess_pieces animate-background duplicate-piece")
+
+function logBoundingClientRect() {
+    const rect = memoryBoard.getBoundingClientRect();
+    for (let duplicate of duplicates) {
+        duplicate.style.left = duplicate.style.left + (rect.top - first_load_top)
+        duplicate.style.top = duplicate.style.top + (rect.left - first_load_left)
+    }
+    console.log(rect.top);
+    console.log(rect.left);
+}
+
+window.addEventListener('scroll', logBoundingClientRect);
+window.addEventListener('resize', logBoundingClientRect);
+

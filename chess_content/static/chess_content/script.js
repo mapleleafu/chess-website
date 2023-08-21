@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+// TODO: cursor can only replace a piece once. 
+// TODO: the logic if piece put down on top of a different piece should be handled properly 
 
 function cursorFunct(event) {
     document.body.style.cursor = "pointer";
@@ -134,6 +136,10 @@ let lastMouseEvent = null;
 
 
 document.addEventListener('mousemove', (event) => {
+    try {console.log(activePiece.className)
+    } catch (error){
+
+    }
     lastMouseEvent = event;
 });
 
@@ -187,7 +193,10 @@ function placePiece(event) {
         duplicateContainer.appendChild(duplicate);
         if(activePiece && activePiece.className === "chess_pieces animate-background duplicate-piece") {
             activePiece.remove();
+            // Reset activePiece to null
+            activePiece = null;
         }
+
     }
     
 }

@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attaching click event to both chess_pieces and trash
     document.querySelectorAll('.chess_pieces, .trash').forEach(piece => {
         piece.addEventListener('click', choosePiece);
+        piece.addEventListener('click', cursorDisable);
     });
 
     // Attach mouseenter and click events to cursor
@@ -12,12 +13,29 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+function cursorDisable(e) {
+    const duplicateContainer = document.querySelector(".duplicate_piece_container");
+    const cursors = document.querySelectorAll('.cursor');
+
+    if (isDuplicateContainerClickListenerAttached) {
+        duplicateContainer.removeEventListener("click", duplicateContainerClickListener);
+        isDuplicateContainerClickListenerAttached = false; // set flag back to false
+
+        // Reset the cursor to default
+        document.body.style.cursor = "";
+        
+        cursors.forEach(element => {
+            element.style.backgroundColor = "";
+            element.classList.remove("animate-background");
+        });
+
+    }
+}
 
 let duplicateContainerClickListener;
-let cursorMode = false;
+let isDuplicateContainerClickListenerAttached = false; // Flag to check if the event listener is already attached
 
 function cursorFunct(event) {
-    cursorMode = true;
     document.body.style.cursor = "pointer";
 
     if (activePiece) {
@@ -25,39 +43,31 @@ function cursorFunct(event) {
         activePiece = null;
     }
 
-    // Reset background colors
+    // Reset background colors for other elements
     document.querySelectorAll('.animate-background, .trash')
         .forEach(element => element.style.backgroundColor = "");
 
-    // Add color and animation to the cursor
-    event.target.classList.add("animate-background");
-    event.target.style.backgroundColor = "#16ac2aa1";
+    const cursors = document.querySelectorAll('.cursor');
+
+    // Change the background attributes of cursors
+    cursors.forEach(cursor => {
+        cursor.classList.add("animate-background");
+        cursor.style.backgroundColor = "#16ac2aa1";
+    });
 
     // Handle duplicate container clicks
     const duplicateContainer = document.querySelector(".duplicate_piece_container");
 
-    if (cursorMode === false) {
-        duplicateContainer.removeEventListener("click", duplicateContainerClickListener);
-    }
-
-    duplicateContainerClickListener = (event) => {
-        if (event.target.classList.value === "chess_pieces animate-background duplicate-piece") {
-            choosePiece(event);
-        }
-    };
-
-    duplicateContainer.addEventListener("click", duplicateContainerClickListener);
-
-    // Reset cursorMode for non-cursor original pieces
-    document.querySelectorAll('.chess_pieces, .trash')
-        .forEach(piece => piece.addEventListener('click', (event) => {
-            if (!event.target.classList.contains('duplicate-piece')) {
-                cursorMode = false;
+    if (!isDuplicateContainerClickListenerAttached) {
+        duplicateContainerClickListener = (event) => {
+            if (event.target.classList.value === "chess_pieces animate-background duplicate-piece") {
+                choosePiece(event);
             }
-        }));
-
+        };
+        duplicateContainer.addEventListener("click", duplicateContainerClickListener);
+        isDuplicateContainerClickListenerAttached = true; // set flag to true
+    }
 }
-
 
 
 let activePiece = null;
@@ -65,19 +75,12 @@ let previouslyClickedPiece = null;
 
 
 function choosePiece(event) {
-    // Reset the cursor to default
-    document.body.style.cursor = "";
-
     // Get the clicked element
     let clickedPiece = event.target;
 
-    // If the trash bin is clicked, cursorMode should be set to false
-    if (clickedPiece.classList.contains("trash")) {
-        cursorMode = false; // <-- Added this line
-    }
+    // Check if the clicked piece is already the active piece
+    if (clickedPiece?.alt === activePiece?.alt) return;
 
-    // Handle other chess pieces and cursor
-    const cursors = document.querySelectorAll('.cursor');
 
     // Remove the previous active piece
     if (activePiece) {
@@ -86,31 +89,35 @@ function choosePiece(event) {
         activePiece = null;
     }
 
+    const trashs = document.querySelectorAll('.trash');
+
     // Reset the background color of the previously clicked piece and cursor
     if (previouslyClickedPiece) {
-        previouslyClickedPiece.style.backgroundColor = "";
-        previouslyClickedPiece.classList.remove("animate-background");
+        if (previouslyClickedPiece.className == "trash animate-background") {
+            trashs.forEach(trash => {
+                trash.classList.remove("animate-background");
+                trash.style.backgroundColor = "";
+            });
+        } else {
+            previouslyClickedPiece.style.backgroundColor = "";
+            previouslyClickedPiece.classList.remove("animate-background");
+        }
     }
 
     // Different behavior depending on whether the trash bin or a chess piece is clicked
     if (clickedPiece.classList.contains("trash")) {
-        clickedPiece.classList.add("animate-background");
-        clickedPiece.style.backgroundColor = "#f57878f6";
-        clickedPiece.setAttribute("draggable", "false");
+        trashs.forEach(trash => {
+            trash.classList.add("animate-background");
+            trash.style.backgroundColor = "#f57878f6";
+        });
 
         // Reset activePiece if it's trash
         if (activePiece && activePiece.classList.contains("trash")) {
-            activePiece = null; // <-- Added this line
+            activePiece = null; 
         }
     } else {
         clickedPiece.classList.add("animate-background");
         clickedPiece.style.backgroundColor = "#16b0df";
-
-        // Reset the cursor background color
-        cursors.forEach(element => {
-            element.style.backgroundColor = "";
-            element.classList.remove("animate-background");
-        });
     }
 
     // Store the reference to the current clicked piece for future use
@@ -130,41 +137,37 @@ function choosePiece(event) {
 
     // Append the active piece to the body and position it
     document.body.appendChild(activePiece);
+
+    // Piece movement logic, eventlisteners etc.
+
     movePiece(event);  // Position it immediately
     document.addEventListener("mousemove", movePiece);
-}
 
-
-
-function movePiece(event) {
-    if (!activePiece) return;
-    activePiece.style.left = `${event.clientX + window.scrollX - activePiece.width / 2}px`;
-    activePiece.style.top = `${event.clientY + window.scrollY - activePiece.height / 2}px`;
-}
-
-
-let lastMouseEvent = null;
-
-
-document.addEventListener('mousemove', (event) => {
-    // try {console.log(activePiece.className)
-    // } catch (error){}
-    console.log(cursorMode)
+    let lastMouseEvent = null;
     
-    lastMouseEvent = event;
-});
-
-
-// Smooth scrolling when a piece is selected
-document.addEventListener('scroll', function() {
-    if (activePiece && lastMouseEvent) {
-        activePiece.style.left = `${lastMouseEvent.clientX + window.scrollX - activePiece.width / 2}px`;
-        activePiece.style.top = `${lastMouseEvent.clientY + window.scrollY - activePiece.height / 2}px`;
+    document.addEventListener('mousemove', (event) => {
+        lastMouseEvent = event;
+    });
+    
+    
+    // Smooth scrolling when a piece is selected
+    document.addEventListener('scroll', function() {
+        if (activePiece && lastMouseEvent) {
+            activePiece.style.left = `${lastMouseEvent.clientX + window.scrollX - activePiece.width / 2}px`;
+            activePiece.style.top = `${lastMouseEvent.clientY + window.scrollY - activePiece.height / 2}px`;
+        }
+    });
+    
+    function movePiece(event) {
+        if (!activePiece) return;
+        activePiece.style.left = `${event.clientX + window.scrollX - activePiece.width / 2}px`;
+        activePiece.style.top = `${event.clientY + window.scrollY - activePiece.height / 2}px`;
     }
-});
+    
+    // Placing a piece down on the board
+    document.querySelector(".memory_board").addEventListener("click", placePiece);
+}
 
-
-document.querySelector(".memory_board").addEventListener("click", placePiece);
 
 function placePiece(event) {
     if (!activePiece || activePiece.className == "trash animate-background") return;
@@ -210,34 +213,34 @@ function placePiece(event) {
             activePiece = null;
         }
 
+    document.addEventListener('click', function(event) {
+        if (!activePiece) return;
+        if (event.target.classList.contains('duplicate-piece')) {
+            console.log(event.target)
+            const duplicateContainer = document.querySelector(".duplicate_piece_container");
+            // if (isDuplicateContainerClickListenerAttached) {
+            //     duplicateContainer.removeChild(event.target);
+            //     placePiece(event); // Put down the active piece
+            //     console.log("new")
+            // }
+            if (activePiece.src === event.target.src) {
+                console.log("1")
+                // If the clicked duplicate piece is the same as the active piece
+                duplicateContainer.removeChild(event.target);
+            } else if (activePiece) {
+                console.log("2")
+                // If there's an active piece and you click on another duplicate piece
+                duplicateContainer.removeChild(event.target);
+                placePiece(event); // Put down the active piece
+            } else {
+                console.log("3")
+                // If there's no active piece and you click on a duplicate piece
+                duplicateContainer.removeChild(event.target);
+            }
+        }
+    });
+        
     }
-    
 }
 
-
-document.addEventListener('click', function(event) {
-    if (!activePiece) return;
-    if (event.target.classList.contains('duplicate-piece')){
-        console.log(event.target.className)
-        console.log(activePiece)
-    }
-    if (event.target.classList.contains('duplicate-piece')) {
-        const duplicateContainer = document.querySelector(".duplicate_piece_container");
-
-        if (activePiece.src === event.target.src) {
-            console.log("1")
-            // If the clicked duplicate piece is the same as the active piece
-            duplicateContainer.removeChild(event.target);
-        } else if (activePiece) {
-            console.log("2")
-            // If there's an active piece and you click on another duplicate piece
-            duplicateContainer.removeChild(event.target);
-            placePiece(event); // Put down the active piece
-        } else {
-            console.log("3")
-            // If there's no active piece and you click on a duplicate piece
-            duplicateContainer.removeChild(event.target);
-        }
-    }
-});
 

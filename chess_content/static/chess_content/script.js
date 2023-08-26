@@ -13,13 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-function cursorDisable(e) {
+function cursorDisable() {
     const duplicateContainer = document.querySelector(".duplicate_piece_container");
     const cursors = document.querySelectorAll('.cursor');
 
-    if (isDuplicateContainerClickListenerAttached) {
+    if (cursorModeEnabled) {
         duplicateContainer.removeEventListener("click", duplicateContainerClickListener);
-        isDuplicateContainerClickListenerAttached = false; // set flag back to false
+        cursorModeEnabled = false; // set flag back to false
 
         // Reset the cursor to default
         document.body.style.cursor = "";
@@ -33,7 +33,7 @@ function cursorDisable(e) {
 }
 
 let duplicateContainerClickListener;
-let isDuplicateContainerClickListenerAttached = false; // Flag to check if the event listener is already attached
+let cursorModeEnabled = false; // Flag to check if the event listener is already attached
 
 function cursorFunct(event) {
     document.body.style.cursor = "pointer";
@@ -58,14 +58,20 @@ function cursorFunct(event) {
     // Handle duplicate container clicks
     const duplicateContainer = document.querySelector(".duplicate_piece_container");
 
-    if (!isDuplicateContainerClickListenerAttached) {
+    if (!cursorModeEnabled) {
         duplicateContainerClickListener = (event) => {
-            if (event.target.classList.value === "chess_pieces animate-background duplicate-piece") {
+            // When you place a piece down on another piece, remove the original one
+            if (activePiece != null) {
+                duplicateContainer.removeChild(event.target);
+                placePiece(event)
+            }
+            // For moving pieces around on empty squares
+            else if (event.target.classList.value === "chess_pieces animate-background duplicate-piece") {
                 choosePiece(event);
             }
         };
         duplicateContainer.addEventListener("click", duplicateContainerClickListener);
-        isDuplicateContainerClickListenerAttached = true; // set flag to true
+        cursorModeEnabled = true; // set flag to true
     }
 }
 
@@ -212,35 +218,23 @@ function placePiece(event) {
             // Reset activePiece to null
             activePiece = null;
         }
+    }
 
     document.addEventListener('click', function(event) {
         if (!activePiece) return;
+        
         if (event.target.classList.contains('duplicate-piece')) {
-            console.log(event.target)
-            const duplicateContainer = document.querySelector(".duplicate_piece_container");
-            // if (isDuplicateContainerClickListenerAttached) {
-            //     duplicateContainer.removeChild(event.target);
-            //     placePiece(event); // Put down the active piece
-            //     console.log("new")
-            // }
-            if (activePiece.src === event.target.src) {
-                console.log("1")
-                // If the clicked duplicate piece is the same as the active piece
+            if (cursorModeEnabled && duplicateContainer.contains(event.target)) {
                 duplicateContainer.removeChild(event.target);
-            } else if (activePiece) {
-                console.log("2")
-                // If there's an active piece and you click on another duplicate piece
-                duplicateContainer.removeChild(event.target);
-                placePiece(event); // Put down the active piece
-            } else {
-                console.log("3")
-                // If there's no active piece and you click on a duplicate piece
-                duplicateContainer.removeChild(event.target);
+            }
+            else if (duplicateContainer.contains(event.target)) { // Check parent-child relationship
+                if (activePiece.src === event.target.src) {
+                    duplicateContainer.removeChild(event.target);
+                } else if (activePiece) {
+                    duplicateContainer.removeChild(event.target);
+                    placePiece(event); // Put down the active piece
+                } 
             }
         }
     });
-        
-    }
 }
-
-

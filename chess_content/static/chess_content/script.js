@@ -10,30 +10,53 @@ document.addEventListener('DOMContentLoaded', () => {
         cursor.addEventListener('mouseenter', () => cursor.style.cursor = "pointer");
         cursor.addEventListener('click', cursorFunct);
     });
-});
 
+    const playButton = document.querySelector('.btn.btn-info');
 
-function cursorDisable() {
-    const duplicateContainer = document.querySelector(".duplicate_piece_container");
-    const cursors = document.querySelectorAll('.cursor');
+    playButton.addEventListener("click", function() {
+        const csrftoken = getCookie('csrftoken');
+        const memoryBoard = document.querySelector(".duplicate_piece_container")
 
-    if (cursorModeEnabled) {
-        duplicateContainer.removeEventListener("click", duplicateContainerClickListener);
-        cursorModeEnabled = false; // set flag back to false
-
-        // Reset the cursor to default
-        document.body.style.cursor = "";
-        
-        cursors.forEach(element => {
-            element.style.backgroundColor = "";
-            element.classList.remove("animate-background");
+        const piecesByUser = Array.from(memoryBoard.children).map(child => {
+            return {
+                left: child.left,
+            };
         });
 
+        // POST request to Django
+        fetch('/memory_rush', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                memoryBoard: memoryBoard,
+                }),
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.log('Error:', error));
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
+    return cookieValue;
 }
 
-let duplicateContainerClickListener;
-let cursorModeEnabled = false; // Flag to check if the event listener is already attached
+let cursorModeEnabled = false; // Flag to check if the cursor is clicked
+
 
 function cursorFunct(event) {
     document.body.style.cursor = "pointer";
@@ -62,23 +85,48 @@ function cursorFunct(event) {
         duplicateContainerClickListener = (event) => {
             // When you place a piece down on another piece, remove the original one
             if (activePiece != null) {
-                duplicateContainer.removeChild(event.target);
-                placePiece(event)
+                // If they're the same piece, remove the piece from the cursor 
+                if (activePiece.alt === event.target.alt) {
+                    activePiece.remove();
+                    activePiece = null;
+                } else {
+                    duplicateContainer.removeChild(event.target);
+                    placePiece(event)
+                }
             }
             // For moving pieces around on empty squares
             else if (event.target.classList.value === "chess_pieces animate-background duplicate-piece") {
                 choosePiece(event);
             }
         };
+        
         duplicateContainer.addEventListener("click", duplicateContainerClickListener);
         cursorModeEnabled = true; // set flag to true
     }
 }
 
 
+function cursorDisable() {
+    const duplicateContainer = document.querySelector(".duplicate_piece_container");
+    const cursors = document.querySelectorAll('.cursor');
+
+    if (cursorModeEnabled) {
+        duplicateContainer.removeEventListener("click", duplicateContainerClickListener);
+        cursorModeEnabled = false; // set flag back to false
+
+        // Reset the cursor to default
+        document.body.style.cursor = "";
+        
+        cursors.forEach(element => {
+            element.style.backgroundColor = "";
+            element.classList.remove("animate-background");
+        });
+
+    }
+}
+
 let activePiece = null;
 let previouslyClickedPiece = null;
-
 
 function choosePiece(event) {
     // Get the clicked element
@@ -141,6 +189,8 @@ function choosePiece(event) {
         border: "0px"
     });
 
+    activePiece.setAttribute("draggable", "false");
+
     // Append the active piece to the body and position it
     document.body.appendChild(activePiece);
 
@@ -191,50 +241,57 @@ function placePiece(event) {
     const squareWidth = activePiece.width;  
     const squareHeight = activePiece.height;
 
+    // Check if the coordinates (x, y) are within the boundaries of the chess board
     if (x >= boardX && x <= boardX + 8 * squareWidth && y <= boardY + 8 * squareHeight && y >= boardY) {
+
+        // Calculate the grid coordinates (Xcord, Ycord) for the square where the piece should be placed
         const [Xcord, Ycord] = [Math.floor((x - boardX) / squareWidth), Math.floor((y - boardY) / squareHeight)];
+
+        // Calculate the pixel coordinates of the center of the square
         const squareCenter = [Xcord * squareWidth + squareWidth / 2, Ycord * squareHeight + squareHeight / 2];
         
         const duplicate = activePiece.cloneNode(true);
 
         const boardContainerRect = boardContainer.getBoundingClientRect();
         
+        // Assign CSS styles to the duplicate piece for proper positioning
         Object.assign(duplicate.style, {
             position: "absolute",
             left: `${squareCenter[0] - squareWidth / 2 + boardX - boardContainerRect.left}px`,  
             top: `${squareCenter[1] - squareHeight / 2 + boardY - boardContainerRect.top}px`,  
-            zIndex: "9997",
-            pointerEvents: "auto"
+            zIndex: "9997", 
+            pointerEvents: "auto"  
         });
 
-        duplicate.classList.add('duplicate-piece');  // Assign a specific class to each duplicated piece
-        duplicate.setAttribute("draggable", "false"); // Allow dragging on the duplicate piece
+        duplicate.classList.add('duplicate-piece');
+
+        duplicate.setAttribute("draggable", "false");
 
         duplicateContainer.appendChild(duplicate);
+    }
         
         // Logic for a piece selected by cursor to not duplicate after dragging 
         if(activePiece && activePiece.className === "chess_pieces animate-background duplicate-piece") {
             activePiece.remove();
-            // Reset activePiece to null
             activePiece = null;
         }
-    }
 
-    document.addEventListener('click', function(event) {
-        if (!activePiece) return;
-        
-        if (event.target.classList.contains('duplicate-piece')) {
-            if (cursorModeEnabled && duplicateContainer.contains(event.target)) {
-                duplicateContainer.removeChild(event.target);
-            }
-            else if (duplicateContainer.contains(event.target)) { // Check parent-child relationship
-                if (activePiece.src === event.target.src) {
+        document.addEventListener('click', function(event) {
+            if (!activePiece) return;
+            
+            if (event.target.classList.contains('duplicate-piece')) {
+                // If cursor is enabled, remove the chosen piece from the board
+                if (cursorModeEnabled && duplicateContainer.contains(event.target)) {
                     duplicateContainer.removeChild(event.target);
-                } else if (activePiece) {
-                    duplicateContainer.removeChild(event.target);
-                    placePiece(event); // Put down the active piece
-                } 
+                }
+                else if (duplicateContainer.contains(event.target)) { 
+                    if (activePiece.src === event.target.src) {
+                        duplicateContainer.removeChild(event.target);
+                    } else if (activePiece) {
+                        duplicateContainer.removeChild(event.target);
+                        placePiece(event); // Put down the active piece
+                    } 
+                }
             }
-        }
-    });
-}
+        });
+    }

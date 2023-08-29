@@ -11,17 +11,31 @@ document.addEventListener('DOMContentLoaded', () => {
         cursor.addEventListener('click', cursorFunct);
     });
 
-    const playButton = document.querySelector('.btn.btn-info');
+    // Removing all the duplicate pieces
+    document.querySelector(".btn.btn-danger.clear").addEventListener("click", () => {
+        const duplicateContainer = document.querySelector(".duplicate_piece_container");
+        const elementsToRemove = duplicateContainer.querySelectorAll(".duplicate-piece");
+        
+        elementsToRemove.forEach(element => {
+            duplicateContainer.removeChild(element);
+        });
+    });
+    
 
-    playButton.addEventListener("click", function() {
+    const submitButton = document.querySelector('.btn.btn-success');
+
+    submitButton.addEventListener("click", function() {
         const csrftoken = getCookie('csrftoken');
         const memoryBoard = document.querySelector(".duplicate_piece_container")
 
         const piecesByUser = Array.from(memoryBoard.children).map(child => {
             return {
-                left: child.left,
+                name: child.alt,
+                left: child.offsetLeft,
+                top: child.offsetTop,
             };
         });
+        console.log(piecesByUser)
 
         // POST request to Django
         fetch('/memory_rush', {
@@ -31,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'X-CSRFToken': csrftoken
             },
             body: JSON.stringify({
-                memoryBoard: memoryBoard,
+                piecesByUser: piecesByUser,
                 }),
         })
         .then(response => response.json())
@@ -75,7 +89,7 @@ function cursorFunct(event) {
     // Change the background attributes of cursors
     cursors.forEach(cursor => {
         cursor.classList.add("animate-background");
-        cursor.style.backgroundColor = "#16ac2aa1";
+        cursor.style.backgroundColor = "#4aa156b0";
     });
 
     // Handle duplicate container clicks
@@ -171,7 +185,7 @@ function choosePiece(event) {
         }
     } else {
         clickedPiece.classList.add("animate-background");
-        clickedPiece.style.backgroundColor = "#16b0df";
+        clickedPiece.style.backgroundColor = "#507ea9";
     }
 
     // Store the reference to the current clicked piece for future use

@@ -8,17 +8,32 @@ body {
 .nav {
     background-color: #333;
     padding: 10px 0;
-    text-align: center;
+    width: 140px; 
+    position: fixed; 
+    height: 100%; 
+    overflow: auto;
+    flex-direction: column; 
+    align-items: flex-start; 
+}
+
+.nav-item {
+    width: 100%; 
 }
 
 .nav-item a {
     color: #fff;
-    margin: 0 15px;
+    padding: 8px 16px;
     text-decoration: none;
+    display: block; 
 }
 
 .nav-item a:hover {
-    text-decoration: underline;
+    background-color: #575757;
+}
+
+button{
+    margin-top: 8px;
+    margin-bottom: 8px;
 }
 
 .main_wrapper {
@@ -27,14 +42,14 @@ body {
 
 .main_content {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    flex-direction: column;
 }
 
 .board_and_duplicates {
-    position: relative;
     display: flex;
+    position: relative;
     justify-content: center;
     align-items: center;
 }
@@ -45,14 +60,14 @@ body {
     align-items: center;
     text-align: center;
     justify-content: center;
-    width: 100px;  /* Or whatever fixed width you want for the sidebar */
+    width: 100px;  
 }
 
 .content-container {
     display: flex;
     flex-direction: column;
     align-items: center; 
-    padding: 20px;
+    justify-content: center;
 }
 
 .memory_board, .memory_board * {
@@ -87,7 +102,7 @@ body {
     border-radius: 10px;
     background-color: gray;
     display: flex;
-    margin: 20px 0; 
+    margin  : 20px 0; 
 }    
 
 .black_original_pieces,
@@ -105,13 +120,10 @@ body {
     border-radius: 10px;
 }
 
-.chess_pieces:hover, 
-.chess_pieces:hover,
-.cursor:hover,
-.trash:hover {
+.chess_pieces:hover {
     border-radius: 10px;
     transform: scaleX(1.09);
-    background-color: #139feb36;
+    background-color: #617384;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
@@ -123,10 +135,15 @@ body {
 }
 
 .cursor:hover {
+    border-radius: 10px;
+    transform: scaleX(1.09);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     background-color: #17862673;
-    
 }
 
 .trash:hover {
+    border-radius: 10px;
+    transform: scaleX(1.09);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     background-color: #c21c1c73;
 }

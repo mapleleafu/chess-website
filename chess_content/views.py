@@ -3,6 +3,9 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+from .models import User, ChessGame
+
+
 def index(request):
     return render(request, "chess_content/index.html")
 
@@ -40,3 +43,9 @@ def memory_rush(request):
                   {'black_piece_filenames': black_piece_filenames,
                    'white_piece_filenames': white_piece_filenames
                    })
+
+
+def get_fen_list(request):
+    chessgames = ChessGame.objects.all()
+    fen_list = [game.fen_string for game in chessgames]
+    return JsonResponse({'fen_list': fen_list})

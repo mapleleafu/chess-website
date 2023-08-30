@@ -15,8 +15,11 @@
                 </div>
             </div>
             <div class="board_and_duplicates">
-                <div class="board_container">
-                    <img src="{% static 'chess_content/assets/board.png' %}" draggable="false" alt="board" class="memory_board">
+                <div class="countdown-wrapper">
+                    <div class="countdown" style="display:none;"></div>
+                    <div class="board_container">
+                        <img src="{% static 'chess_content/assets/board.png' %}" draggable="false" alt="board" class="memory_board">
+                    </div>
                 </div>
                 <div class="duplicate_piece_container"></div>
             </div>
@@ -31,10 +34,16 @@
             </div>
         </div>
         <div class="control_panel">
-            <button type="submit" data-post-id="play" class="btn btn-info">Play!</button>
-            <button type="submit" data-post-id="submit" class="btn btn-success">Submit</button>
+            <button type="submit" data-post-id="submit" class="btn btn-success submit">Submit</button>
             <button class="btn btn-danger clear">Clear All</button>
-            <button class="btn btn-secondary">Flip Board</button>
+            <button class="btn btn-secondary flip">Flip Board</button>
         </div>
+    </div>
+    <div class="welcome_page">
+        <h1 class="main_header">How to Play?</h1>
+        <img src="https://media.istockphoto.com/id/1226328537/vector/image-place-holder-with-a-gray-camera-icon.jpg?s=612x612&w=0&k=20&c=qRydgCNlE44OUSSoz5XadsH7WCkU59-l-dwrvZzhXsI=" class="welcome_images" alt="">
+        <img src="https://media.istockphoto.com/id/1226328537/vector/image-place-holder-with-a-gray-camera-icon.jpg?s=612x612&w=0&k=20&c=qRydgCNlE44OUSSoz5XadsH7WCkU59-l-dwrvZzhXsI=" class="welcome_images" alt="">
+        <img src="https://media.istockphoto.com/id/1226328537/vector/image-place-holder-with-a-gray-camera-icon.jpg?s=612x612&w=0&k=20&c=qRydgCNlE44OUSSoz5XadsH7WCkU59-l-dwrvZzhXsI=" class="welcome_images" alt="">
+        <button class="welcome_play_button">Play</button>
     </div>
 {% endblock %}  

@@ -11,48 +11,206 @@ document.addEventListener('DOMContentLoaded', () => {
         cursor.addEventListener('click', cursorFunct);
     });
 
-    // Removing all the duplicate pieces
-    document.querySelector(".btn.btn-danger.clear").addEventListener("click", () => {
-        const duplicateContainer = document.querySelector(".duplicate_piece_container");
-        const elementsToRemove = duplicateContainer.querySelectorAll(".duplicate-piece");
-        
-        elementsToRemove.forEach(element => {
-            duplicateContainer.removeChild(element);
-        });
-    });
-    
+    // Clear all pieces (Clear all button)
+    document.querySelector(".btn.btn-danger.clear").addEventListener("click", clearFunct)
 
-    const submitButton = document.querySelector('.btn.btn-success');
+    // Submit your guesses (Submit button)
+    document.querySelector('.btn.btn-success.submit').addEventListener("click", submitFunct)
 
-    submitButton.addEventListener("click", function() {
-        const csrftoken = getCookie('csrftoken');
-        const memoryBoard = document.querySelector(".duplicate_piece_container")
+    // FLip the board (Flip board button)
+    document.querySelector('.btn.btn-secondary.flip').addEventListener("click", flipFunct)
 
-        const piecesByUser = Array.from(memoryBoard.children).map(child => {
-            return {
-                name: child.alt,
-                left: child.offsetLeft,
-                top: child.offsetTop,
-            };
-        });
-        console.log(piecesByUser)
-
-        // POST request to Django
-        fetch('/memory_rush', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                piecesByUser: piecesByUser,
-                }),
-        })
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(error => console.log('Error:', error));
-    });
+    document.querySelector('.welcome_play_button').addEventListener("click", welcomeButton)
 });
+
+
+// Getting the fen list from the database
+fetch('/get_fen_list/')
+.then(response => response.json())
+.then(data => {
+    const fenList = data.fen_list;
+    const randomfen = fenList[Math.floor(Math.random() * fenList.length)];
+    console.log("Random Fen:", randomfen); 
+
+    // Convert the random FEN to a board and place the pieces
+    const boardFromFen = fenToBoard(randomfen);
+    placePiecesUsingFen(boardFromFen);
+});
+
+
+function placePiecesUsingFen(board) {
+    const boardContainer = document.querySelector(".duplicate_piece_container");
+    const squareWidth = 90;  // Replace with the actual width of a square
+    const squareHeight = 90;  // Replace with the actual height of a square
+
+    // Mapping of FEN pieces to their image URLs
+    const pieceToImage = {
+        // White pieces
+        'K': '/static/chess_content/assets/pieces/wk.png',
+        'Q': '/static/chess_content/assets/pieces/wq.png',
+        'R': '/static/chess_content/assets/pieces/wr.png',
+        'N': '/static/chess_content/assets/pieces/wn.png',
+        'B': '/static/chess_content/assets/pieces/wb.png',
+        'P': '/static/chess_content/assets/pieces/wp.png',
+
+        // Black pieces
+        'k': '/static/chess_content/assets/pieces/bk.png',
+        'q': '/static/chess_content/assets/pieces/bq.png',
+        'r': '/static/chess_content/assets/pieces/br.png',
+        'n': '/static/chess_content/assets/pieces/bn.png',
+        'b': '/static/chess_content/assets/pieces/bb.png',
+        'p': '/static/chess_content/assets/pieces/bp.png',
+        };
+
+    for (let y = 0; y < board.length; y++) {
+        for (let x = 0; x < board[y].length; x++) {
+            const piece = board[y][x];
+
+            if (piece) {
+                const duplicate = document.createElement('img');
+                duplicate.src = pieceToImage[piece];
+                Object.assign(duplicate.style, {
+                    position: "absolute",
+                    left: `${x * squareWidth}px`,  
+                    top: `${y * squareHeight}px`,  
+                    width: `${squareWidth}px`,
+                    height: `${squareHeight}px`,
+                    zIndex: "9997",  
+                    pointerEvents: "auto",
+                    webkitUserDrag: "none",
+                    userSelect: "none"  
+                });
+
+                duplicate.classList.add('duplicate-piece');
+                duplicate.setAttribute("draggable", "false");
+
+                boardContainer.appendChild(duplicate);
+            }
+        }
+    }
+}
+
+
+function fenToBoard(fen) {
+    // Split the FEN string into its components: board, turn, castling, etc.
+    const [fenBoard] = fen.split(' ');
+  
+    // Split the board part of the FEN string into ranks.
+    const fenRanks = fenBoard.split('/');
+  
+    // Initialize an empty board.
+    const board = [];
+  
+    // Loop through each rank in the FEN string.
+    for (const fenRank of fenRanks) {
+      const rank = [];
+      for (const char of fenRank) {
+        if (isNaN(char)) {
+          // If the character is not a number, it represents a piece.
+          rank.push(char);
+        } else {
+          // If the character is a number, it represents empty squares.
+          const emptySquares = parseInt(char, 10);
+          for (let i = 0; i < emptySquares; i++) {
+            rank.push(null);
+          }
+        }
+      }
+      board.push(rank);
+    }
+  
+    return board;
+  }
+  
+
+function welcomeButton() {
+    // Removing the welcome page
+    var element = document.querySelector(".welcome_page")
+    element.parentNode.removeChild(element);
+    document.querySelector(".main_wrapper").style.display = "flex";
+
+    // Start the countdown
+    startCountdown();
+}
+
+
+function startCountdown() {
+    const countdownElement = document.querySelector(".countdown");
+    countdownElement.style.display = "block";  // Make it visible
+    let counter = 5;
+
+    const interval = setInterval(() => {
+        countdownElement.textContent = counter;
+
+        // Apply a dynamic scaling based on the counter value
+        if (counter >= 0) {
+            countdownElement.style.transform = `scale(${1 + (5 - counter) * 0.2})`;
+        }
+
+        counter--;
+
+        if (counter < 0) {
+            clearInterval(interval);
+            countdownElement.parentNode.removeChild(countdownElement); // Remove the counter element
+            playFunct();
+            clearFunct();
+        }
+    }, 1000);  // Run every second
+}
+
+function playFunct() {
+    // Display visibility settings for other buttons and pieces
+    document.querySelector(".white_chess_pieces").style.visibility = "visible";
+    document.querySelector(".black_chess_pieces").style.visibility = "visible";
+
+    document.querySelector(".btn.btn-secondary.flip").style.display = "block";
+    document.querySelector(".btn.btn-success.submit").style.display = "block";
+    document.querySelector(".btn.btn-danger.clear").style.display = "block";
+}
+
+
+function clearFunct() {
+    const duplicateContainer = document.querySelector(".duplicate_piece_container");
+    const elementsToRemove = duplicateContainer.querySelectorAll(".duplicate-piece");
+    
+    elementsToRemove.forEach(element => {
+        duplicateContainer.removeChild(element);
+    });
+}
+
+
+function submitFunct() {
+    const csrftoken = getCookie('csrftoken');
+    const memoryBoard = document.querySelector(".duplicate_piece_container")
+
+    const piecesByUser = Array.from(memoryBoard.children).map(child => {
+        return {
+            name: child.alt,
+            left: child.offsetLeft,
+            top: child.offsetTop,
+        };
+    });
+
+    // POST request to Django
+    fetch('/memory_rush', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+            piecesByUser: piecesByUser,
+            }),
+    })
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.log('Error:', error));
+}
+
+function flipFunct() {
+    console.log("Flip Board button clicked")
+}
+
 
 function getCookie(name) {
     let cookieValue = null;
@@ -70,7 +228,6 @@ function getCookie(name) {
 }
 
 let cursorModeEnabled = false; // Flag to check if the cursor is clicked
-
 
 function cursorFunct(event) {
     document.body.style.cursor = "pointer";

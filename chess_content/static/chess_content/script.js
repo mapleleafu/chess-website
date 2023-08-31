@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.welcome_play_button').addEventListener("click", welcomeButton)
 });
 
+let boardFromFen;
 
 // Getting the fen list from the database
 fetch('/get_fen_list/')
@@ -33,15 +34,15 @@ fetch('/get_fen_list/')
     console.log("Random Fen:", randomfen); 
 
     // Convert the random FEN to a board and place the pieces
-    const boardFromFen = fenToBoard(randomfen);
+    boardFromFen = fenToBoard(randomfen);
     placePiecesUsingFen(boardFromFen);
 });
 
 
 function placePiecesUsingFen(board) {
     const boardContainer = document.querySelector(".duplicate_piece_container");
-    const squareWidth = 90;  // Replace with the actual width of a square
-    const squareHeight = 90;  // Replace with the actual height of a square
+    const squareWidth = 90;
+    const squareHeight = 90;  
 
     // Mapping of FEN pieces to their image URLs
     const pieceToImage = {
@@ -83,7 +84,6 @@ function placePiecesUsingFen(board) {
 
                 duplicate.classList.add('duplicate-piece');
                 duplicate.setAttribute("draggable", "false");
-
                 boardContainer.appendChild(duplicate);
             }
         }
@@ -127,8 +127,10 @@ function welcomeButton() {
     // Removing the welcome page
     var element = document.querySelector(".welcome_page")
     element.parentNode.removeChild(element);
-    document.querySelector(".main_wrapper").style.display = "flex";
 
+    // Adding memory rush's page
+    document.querySelector(".main_wrapper").style.display = "flex";
+    
     // Start the countdown
     startCountdown();
 }
@@ -156,6 +158,8 @@ function startCountdown() {
             clearFunct();
         }
     }, 1000);  // Run every second
+
+
 }
 
 function playFunct() {
@@ -182,7 +186,7 @@ function clearFunct() {
 function submitFunct() {
     const csrftoken = getCookie('csrftoken');
     const memoryBoard = document.querySelector(".duplicate_piece_container")
-
+    console.log(boardFromFen)
     const piecesByUser = Array.from(memoryBoard.children).map(child => {
         return {
             name: child.alt,
@@ -200,9 +204,11 @@ function submitFunct() {
         },
         body: JSON.stringify({
             piecesByUser: piecesByUser,
+            boardFromFen: boardFromFen
             }),
     })
     .then(response => response.json())
+    // Log the data from views.py 
     .then(data => console.log(data))
     .catch(error => console.log('Error:', error));
 }

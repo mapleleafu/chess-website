@@ -1,6 +1,8 @@
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render,redirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+from django.contrib import messages
 import json
 
 from .models import User, ChessGame
@@ -24,7 +26,15 @@ def position_to_square(left, top):
 def memory_rush(request):
     white_piece_filenames = ['wk.png', 'wq.png', 'wr.png', 'wb.png', 'wn.png', 'wp.png']
     black_piece_filenames=  ['bk.png', 'bq.png', 'br.png', 'bb.png', 'bn.png', 'bp.png']
-    
+
+    message = request.session.get('message', None)
+    message_type = request.session.get('message_type', None)
+
+    if message: 
+        del request.session['message']
+    if message_type:
+        del request.session['message_type']
+
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         pieces_by_user = data['piecesByUser']
@@ -39,28 +49,40 @@ def memory_rush(request):
             top = piece_info['top']
             square = position_to_square(left, top)
             transformed_data.append({'name': piece_name, 'square': square})
+
         transformed_data_sorted = sorted(transformed_data, key=lambda x: (x['square'], x['name']))
 
-        # Logic to show which pieces are wrong or correct. Will delete later
+        # Logic to show which pieces are wrong or correct. 
         if Fen_position_sorted == transformed_data_sorted:
-            print("Correctly Solved!")
+            request.session['message'] = 'Matched the Memory!'
+            request.session['message_type'] = 'success'
+            return JsonResponse({'redirect': 'memory_rush', 'status': 'success'})
+
         else:
-            print("Couldn't Solve")
-            test_set = set(tuple(d.items()) for d in Fen_position_sorted)
-            transformed_data_set = set(tuple(d.items()) for d in transformed_data_sorted)
+            # Printing missing pieces, delete later
+            compare_piece_sets(Fen_position_sorted, transformed_data_sorted)
+            return JsonResponse({'message': 'Pieces Not Correct', 'status': 'error'})
 
-            added_pieces = transformed_data_set - test_set
-            removed_pieces = test_set - transformed_data_set
-
-            if added_pieces: print("NOT Needed pieces:", [dict(t) for t in added_pieces])
-            if removed_pieces: print("Needed pieces:", [dict(t) for t in removed_pieces])
-        return JsonResponse({'piecesByUser': transformed_data})
-            
-            
     return render(request, 'chess_content/memory_rush.html', 
                   {'black_piece_filenames': black_piece_filenames,
-                   'white_piece_filenames': white_piece_filenames
+                   'white_piece_filenames': white_piece_filenames,
+                   'message': message,
+                   'message_type': message_type 
                    })
+
+#TODO: Delete later
+def compare_piece_sets(Fen_position_sorted, transformed_data_sorted):
+    test_set = set(tuple(d.items()) for d in Fen_position_sorted)
+    transformed_data_set = set(tuple(d.items()) for d in transformed_data_sorted)
+
+    added_pieces = transformed_data_set - test_set
+    removed_pieces = test_set - transformed_data_set
+
+    if added_pieces:
+        print("NOT Needed pieces:", [dict(t) for t in added_pieces])
+    if removed_pieces:
+        print("Needed pieces:", [dict(t) for t in removed_pieces])
+
 
 # Get FEN lists from the database
 def get_fen_list(request):

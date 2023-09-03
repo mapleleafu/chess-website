@@ -226,3 +226,24 @@ button{
     background-color: lightslategray;
     border-color: grey;
 }
+
+.main_header {
+    color: rgb(233, 148, 22);
+    text-align: center;
+    font-weight: bold;
+}
+
+.p1 {
+    color: white;
+    text-align: center;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.video_container {
+    display: flex;
+    position: absolute;
+    gap: 30px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

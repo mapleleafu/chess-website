@@ -33,6 +33,37 @@ document.addEventListener("DOMContentLoaded", () => {
         .querySelector(".welcome_play_button")
         .addEventListener("click", welcomeButton);
 
+
+    // Welcome page videos gonna be played when hovered over
+    const videos = document.querySelectorAll(".hover-play-video");
+
+    videos.forEach(video => {
+        let isMouseOver = false;  // Flag to check if mouse is over the video
+    
+        // Start the video on mouseover
+        video.addEventListener("mouseover", function() {
+            isMouseOver = true;  // Set flag to true
+            if (this.paused) {
+                this.play();
+            }
+        });
+    
+        // Update the flag on mouseout but don't pause the video
+        video.addEventListener("mouseout", function() {
+            isMouseOver = false;  // Set flag to false
+        });
+    
+        // When the video ends, decide what to do based on whether the mouse is still over the video
+        video.addEventListener("ended", function() {
+            if (isMouseOver) {
+                this.currentTime = 0;  // Reset video to start
+                this.play();  // Play again
+            } else {
+                this.pause();
+                this.currentTime = 0;  // Reset video to start
+            }
+        });
+    });
 });
 
 let flag
@@ -247,7 +278,7 @@ function startCountdown() {
         counter--;
 
         // Countdown end number
-        if (counter < 5) {
+        if (counter < 0) {
             clearInterval(interval);
             countdownElement.parentNode.removeChild(countdownElement); // Remove the counter element
             playFunct();

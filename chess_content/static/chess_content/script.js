@@ -29,49 +29,188 @@ document.addEventListener("DOMContentLoaded", () => {
         .querySelector(".btn.btn-secondary.flip")
         .addEventListener("click", flipFunct);
 
-    document
-        .querySelector(".welcome_play_button")
-        .addEventListener("click", welcomeButton);
-
+    // Start the game when difficulty is chosen
+    document.querySelectorAll(".hover-play-video").forEach(video => {
+        video.addEventListener("click", videoFunct);
+        video.addEventListener(
+            "mouseenter",
+            () => (video.style.cursor = "pointer")
+        );
+    }); 
 
     // Welcome page videos gonna be played when hovered over
     const videos = document.querySelectorAll(".hover-play-video");
 
     videos.forEach(video => {
-        let isMouseOver = false;  // Flag to check if mouse is over the video
+        let isMouseOver = false;  
     
-        // Start the video on mouseover
         video.addEventListener("mouseover", function() {
-            isMouseOver = true;  // Set flag to true
+            isMouseOver = true;  
             if (this.paused) {
                 this.play();
             }
         });
     
-        // Update the flag on mouseout but don't pause the video
         video.addEventListener("mouseout", function() {
-            isMouseOver = false;  // Set flag to false
+            isMouseOver = false;  
         });
     
-        // When the video ends, decide what to do based on whether the mouse is still over the video
         video.addEventListener("ended", function() {
             if (isMouseOver) {
-                this.currentTime = 0;  // Reset video to start
-                this.play();  // Play again
+                this.currentTime = 0;  
+                this.play();  
             } else {
                 this.pause();
-                this.currentTime = 0;  // Reset video to start
+                this.currentTime = 0;  
             }
         });
     });
 });
 
-let flag
+let randomfen;
+let boardFromFen;
+
+function videoFunct(event) {
+    // Getting the fen list from the database
+    fetch("/get_fen_list/")
+    .then((response) => response.json())
+    .then((data) => {
+        const fenList = data.fen_list;
+        randomfen =
+            fenList[Math.floor(Math.random() * fenList.length)];
+
+        // Convert the random FEN to a board and place the pieces
+        boardFromFen = fenToBoard(randomfen);
+        placePiecesUsingFen(boardFromFen);
+    });
+
+    if (event.target.innerHTML.includes("easy")) {
+        startGame("easy")
+    }
+    else if (event.target.innerHTML.includes("medium")) {
+        startGame("medium")
+    }
+    else if (event.target.innerHTML.includes("hard")) {
+        startGame("hard")
+    }
+}
+
+function listToFEN(pieceList) {
+    if (!pieceList) {
+        return;  
+    }
+
+    // Create an 8x8 array filled with empty strings to represent the chess board
+    const board = Array.from({ length: 8 }, () => Array(8).fill(''));
+  
+    // Populate the board array based on the pieces in pieceList
+    pieceList.forEach(piece => {
+      const row = Math.floor(piece.top / 90);
+      const col = Math.floor(piece.left / 90);
+      const pieceName = piece.name.charAt(0) === 'w' ? piece.name.charAt(1).toUpperCase() : piece.name.charAt(1);
+      board[row][col] = pieceName;
+    });
+  
+    // Convert the board array to a FEN string
+    let fen = '';
+    for (let row = 0; row < 8; row++) {
+      let emptyCount = 0;
+      for (let col = 0; col < 8; col++) {
+        if (board[row][col] === '') {
+          emptyCount++;
+        } else {
+          if (emptyCount > 0) {
+            fen += emptyCount;
+            emptyCount = 0;
+          }
+          fen += board[row][col];
+        }
+      }
+      if (emptyCount > 0) {
+        fen += emptyCount;
+      }
+      if (row < 7) {
+        fen += '/';
+      }
+    }
+  
+    // fen += ' w KQkq - 0 1';
+  
+    return fen;
+}
+
+function startGame(difficulty) {
+    // Removing the welcome page
+    var element = document.querySelector(".welcome_page");
+    element.parentNode.removeChild(element);
+
+    document.querySelector(".message_container").style.display = "none";
+
+    // Adding memory rush's page
+    document.querySelector(".main_wrapper").style.display = "flex";
+
+    // Start the countdown
+    startCountdown(difficulty);
+}
+
+function startCountdown(difficulty) {
+    if (difficulty === "easy") difficulty = 15;
+    else if (difficulty === "medium") difficulty = 7;
+    else if (difficulty === "hard") difficulty = 3;
+
+    const countdownElement = document.querySelector(".countdown");
+    if(countdownElement.style.display != "block") countdownElement.style.display = "block"; // Make it visible
+    
+    let counter = difficulty;
+
+    const interval = setInterval(() => {
+        countdownElement.textContent = counter;
+
+        // Apply a dynamic scaling based on the counter value
+        if (counter >= 0) {
+            let scaleValue = Math.max(1, 1 + (5 - counter) * 0.2);
+            countdownElement.style.transform = `scale(${scaleValue})`;
+        }
+
+        counter--;
+
+
+        // Countdown end number
+        if (counter < 0 && gameOnFlag === false) {
+            clearInterval(interval);
+            countdownElement.style.display = "none";
+            clearFunct();
+            countdownEnd_placementStart();
+        } else if (counter < 0 && gameOnFlag === true) {
+            clearInterval(interval);
+            countdownElement.style.display = "none";
+            user_playing_FEN = fenToBoard(listToFEN(piecesByUser));
+            clearFunct();
+            placePiecesUsingFen(user_playing_FEN);
+            countdownEnd_placementStart();
+        }
+    }, 1000); // Run every second
+}
+
+function countdownEnd_placementStart() {
+    // Display visibility settings for other buttons and pieces
+    document.querySelector(".white_chess_pieces").style.visibility = "visible";
+    document.querySelector(".black_chess_pieces").style.visibility = "visible";
+
+    document.querySelector(".control_panel").style.visibility = "visible";
+    document.querySelector(".btn.btn-secondary.flip").style.display = "block";
+    document.querySelector(".btn.btn-success.submit").style.display = "block";
+    document.querySelector(".btn.btn-danger.clear").style.display = "block";
+}
+
+let gameOnFlag = false;
+let piecesByUser;
 
 function submitFunct() {
     const csrftoken = getCookie("csrftoken");
     const memoryBoard = document.querySelector(".duplicate_piece_container");
-    const piecesByUser = Array.from(memoryBoard.children).map((child) => {
+    console.log(piecesByUser);
+    piecesByUser = Array.from(memoryBoard.children).map((child) => {
         return {
             name: child.alt,
             left: child.offsetLeft,
@@ -79,6 +218,7 @@ function submitFunct() {
         };
     });
 
+    console.log(piecesByUser);
     fetch("/memory_rush", {
         method: "POST",
         headers: {
@@ -94,10 +234,33 @@ function submitFunct() {
         .then((data) => {
             if (data.status === "success") {
                 window.location.href = "/memory_rush";
+                gameOnFlag = false;
             } else if (data.status === "error") {
                 displayErrorMessage(data.message);
+                gameOnFlag = true;
+                gameisnotover();
             }
         });
+}
+
+let gameon = false;
+
+function gameisnotover() {
+    // Adding memory rush's page
+    document.querySelector(".main_wrapper").style.display = "flex";
+
+    document.querySelector(".white_chess_pieces").style.visibility = "hidden";
+    document.querySelector(".black_chess_pieces").style.visibility = "hidden";
+    
+    document.querySelector(".control_panel").style.visibility = "hidden";
+
+    // Set up the original position
+    clearFunct();
+    boardFromFen = fenToBoard(randomfen);
+    placePiecesUsingFen(boardFromFen);
+
+    // Start the countdown
+    startCountdown("hard");
 }
 
 function displayErrorMessage(message) {
@@ -143,14 +306,13 @@ function displaySuccessMessage(message) {
     messagesDiv.style.display = "flex";
 
     // Clear the message div after 3 seconds
-    setTimeout(() => {
-        messagesDiv.innerHTML = '';
-    }, 3000);
+
 }
 
-let boardFromFen;
-
 function placePiecesUsingFen(board) {
+    if (!board) {
+        return;  
+    }
     const boardContainer = document.querySelector(".duplicate_piece_container");
     const squareWidth = 90;
     const squareHeight = 90;
@@ -202,6 +364,9 @@ function placePiecesUsingFen(board) {
 }
 
 function fenToBoard(fen) {
+    if (!fen) {
+        return;  
+    }
     // Split the FEN string into its components: board, turn, castling, etc.
     const [fenBoard] = fen.split(" ");
 
@@ -228,73 +393,7 @@ function fenToBoard(fen) {
         }
         board.push(rank);
     }
-
     return board;
-}
-
-function welcomeButton() {
-    // Getting the fen list from the database
-    fetch("/get_fen_list/")
-        .then((response) => response.json())
-        .then((data) => {
-            const fenList = data.fen_list;
-            const randomfen =
-                fenList[Math.floor(Math.random() * fenList.length)];
-            console.log("Random Fen:", randomfen);
-
-            // Convert the random FEN to a board and place the pieces
-            boardFromFen = fenToBoard(randomfen);
-            placePiecesUsingFen(boardFromFen);
-        });
-
-    // Removing the welcome page
-    var element = document.querySelector(".welcome_page");
-    element.parentNode.removeChild(element);
-
-    document.querySelector(".message_container").style.display = "none";
-
-    // Adding memory rush's page
-    document.querySelector(".main_wrapper").style.display = "flex";
-
-    // Start the countdown
-    startCountdown();
-}
-
-function startCountdown() {
-    const countdownElement = document.querySelector(".countdown");
-    countdownElement.style.display = "block"; // Make it visible
-    let counter = 5;
-
-    const interval = setInterval(() => {
-        countdownElement.textContent = counter;
-
-        // Apply a dynamic scaling based on the counter value
-        if (counter >= 0) {
-            countdownElement.style.transform = `scale(${
-                1 + (5 - counter) * 0.2
-            })`;
-        }
-
-        counter--;
-
-        // Countdown end number
-        if (counter < 0) {
-            clearInterval(interval);
-            countdownElement.parentNode.removeChild(countdownElement); // Remove the counter element
-            playFunct();
-            clearFunct();
-        }
-    }, 1000); // Run every second
-}
-
-function playFunct() {
-    // Display visibility settings for other buttons and pieces
-    document.querySelector(".white_chess_pieces").style.visibility = "visible";
-    document.querySelector(".black_chess_pieces").style.visibility = "visible";
-
-    document.querySelector(".btn.btn-secondary.flip").style.display = "block";
-    document.querySelector(".btn.btn-success.submit").style.display = "block";
-    document.querySelector(".btn.btn-danger.clear").style.display = "block";
 }
 
 function clearFunct() {

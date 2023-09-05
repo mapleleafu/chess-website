@@ -241,8 +241,21 @@ function submitFunct() {
         .then((response) => response.json())
         .then((data) => {
             if (data.status === "success") {
-                window.location.href = "/memory_rush";
-                gameOnFlag = false;
+                fetch("/record_success", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrftoken,
+                    },
+                    body: JSON.stringify({
+                        FENcode: randomfen,
+                    }),
+                }).then((response) => response.json())
+                  .then((data) => {
+                      if(data.status === "recorded") {
+                          window.location.href = "/memory_rush";
+                      }
+                  });
             } else if (data.status === "error") {
                 displayErrorMessage(data.message);
                 gameOnFlag = true;

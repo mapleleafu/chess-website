@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser, Group, Permission
 
 
@@ -33,3 +34,23 @@ class ChessGame(models.Model):
         formatted_timestamp = self.created_at.strftime("%Y-%m-%d %H:%M:%S")
         return f"[ {self.fen_string} ] [ Created at: {formatted_timestamp} ]"
 
+class PlayedGame(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    chess_game = models.ForeignKey(ChessGame, related_name='played_games', on_delete=models.CASCADE)
+    success = models.BooleanField(default=False)
+    not_success = models.BooleanField(default=False)
+    played_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.success == self.not_success:
+            raise ValidationError("Exactly one of 'success' and 'not_success' should be True.")
+        
+        super(PlayedGame, self).save(*args, **kwargs)
+
+    # Displayed name in the Django Admin Panel categories
+    class Meta:
+        verbose_name = "Played Game"
+        verbose_name_plural = "Played Games"
+    
+    def __str__(self):
+        return f"User: {self.user.username}, Game: {self.chess_game.fen_string}, Success: {self.success}"

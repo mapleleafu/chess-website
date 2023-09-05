@@ -1,26 +1,30 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
-from django.urls import reverse
-from django.contrib import messages
 import json
 
-from .models import User, ChessGame
+from .models import User, ChessGame, PlayedGame
 
 
 def index(request):
     return render(request, "chess_content/index.html")
 
 
-def position_to_square(left, top):
-    # Calculate the column (letter) based on the left position
-    column = chr(ord('a') + (left // 90))
-    
-    # Calculate the row (number) based on the top position
-    row = 8 - (top // 90)
-    
-    return f'{column}{row}'
 
+@csrf_exempt
+def record_success(request):
+    if request.method == "POST":
+        user = request.user
+        data = json.loads(request.body.decode('utf-8'))
+        chess_game_id = data.get('chessGameId')
+        
+        try:
+            chess_game = ChessGame.objects.get(pk=chess_game_id)
+        except ChessGame.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Game does not exist"})
+
+        PlayedGame.objects.create(user=user, chess_game=chess_game, success=True)
+        return JsonResponse({"status": "recorded"})
 
 @csrf_exempt
 def memory_rush(request):
@@ -119,3 +123,12 @@ def transform_board_to_square_data(boardFromFen):
                 })
 
     return square_data
+
+def position_to_square(left, top):
+    # Calculate the column (letter) based on the left position
+    column = chr(ord('a') + (left // 90))
+    
+    # Calculate the row (number) based on the top position
+    row = 8 - (top // 90)
+    
+    return f'{column}{row}'

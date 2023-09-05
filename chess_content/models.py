@@ -19,8 +19,6 @@ class ChessGameBatch(models.Model):
         formatted_timestamp = self.created_at.strftime("%Y-%m-%d %H:%M:%S")
         return f"[ {self.name} ] [ Created at: {formatted_timestamp} ]"
 
-
-
 class ChessGame(models.Model):
     batch = models.ForeignKey(ChessGameBatch, related_name='games', on_delete=models.CASCADE, null=True)
     fen_string = models.CharField(max_length=100)

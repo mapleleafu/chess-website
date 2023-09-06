@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect
 from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.password_validation import validate_password
+from email_validator import validate_email, EmailNotValidError
+from django.core.exceptions import ValidationError
 import json
 
 from .models import User, ChessGame, PlayedGame
@@ -40,10 +42,6 @@ def record_fail(request):
 
 @csrf_exempt
 def memory_rush(request):
-    if request.method == "GET":
-        if 'hard.mp4' in request.path_info:
-            # Handle the GET request for hard.mp4
-            return HttpResponse('This is a GET request for hard.mp4')
     white_piece_filenames = ['wk.png', 'wq.png', 'wr.png', 'wb.png', 'wn.png', 'wp.png']
     black_piece_filenames=  ['bk.png', 'bq.png', 'br.png', 'bb.png', 'bn.png', 'bp.png']
     video_names = ['easy', 'medium', 'hard']
@@ -77,7 +75,7 @@ def memory_rush(request):
         if Fen_position_sorted == transformed_data_sorted:
             request.session['message'] = 'Matched the Memory!'
             request.session['message_type'] = 'success'
-            return JsonResponse({'redirect': 'memory_rush', 'status': 'success'})
+            return JsonResponse({'status': 'success'})
 
         else:
             # Printing missing pieces, delete later
@@ -111,6 +109,7 @@ def compare_piece_sets(Fen_position_sorted, transformed_data_sorted):
 def get_fen_list(request):
     # Check if the user is authenticated
     if not request.user.is_authenticated:
+        messages.error(request, "You have to log in to play.")
         return JsonResponse({'status': 'unauthenticated'}, status=401)
     chessgames = ChessGame.objects.all()
     fen_list = [game.fen_string for game in chessgames]
@@ -160,6 +159,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            messages.success(request, "Successfully logged in.")
             return HttpResponseRedirect(reverse("index"))
         else:
             messages.error(request, "Invalid username and/or password.")
@@ -169,6 +169,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
+    messages.info(request, "Logged out.")
     return HttpResponseRedirect(reverse("index"))
 
 def register(request):
@@ -177,6 +178,17 @@ def register(request):
         email = request.POST["email"]
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            messages.error(request, str(e))
+            return HttpResponseRedirect(reverse('register'))
+        try:
+            validate_email(email)
+        except EmailNotValidError as e:
+            messages.error(request, str(e))
+            return HttpResponseRedirect(reverse('register'))
+        
         if password != confirmation:
             messages.error(request, "Passwords must match.")
             return HttpResponseRedirect(reverse('register'))
@@ -187,6 +199,7 @@ def register(request):
             messages.error(request, "Username already taken.")
             return HttpResponseRedirect(reverse('register'))
         login(request, user)
+        messages.success(request, "Registration successful.")
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "chess_content/register.html")

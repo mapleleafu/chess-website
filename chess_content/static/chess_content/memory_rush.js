@@ -38,9 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
-    // Welcome page videos gonna be played when hovered over
     const videos = document.querySelectorAll(".hover-play-video");
-
+    
+    // Welcome page videos gonna be played when hovered over
     videos.forEach((video) => {
         let isMouseOver = false;
 
@@ -73,42 +73,40 @@ let chosenDifficultyCountdownNumber;
 let chosenDifficulty;
 let chosenDifficultyRoundNumber;
 
-function videoFunct(event) {
+async function videoFunct(event) {
     // Getting the fen list from the database
-    fetch("/get_fen_list/")
-        .then((response) => {
-            if (response.status === 401) {
-                window.location.href = '/login';
-                return;
-            }
-            return response.json();
-        })
-        .then((data) => {
-            if (data) {
-                const fenList = data.fen_list;
-                randomfen = fenList[Math.floor(Math.random() * fenList.length)];
+    const response = await fetch("/get_fen_list/");
+    
+    // If the user is not authenticated
+    if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+    }
+    
+    const data = await response.json();
+    if (data) {
+        const fenList = data.fen_list;
+        randomfen = fenList[Math.floor(Math.random() * fenList.length)];
 
-                // Convert the random FEN to a board and place the pieces
-                boardFromFen = fenToBoard(randomfen);
-                placePiecesUsingFen(boardFromFen);
-            }
-        });
+        // Convert the random FEN to a board and place the pieces
+        boardFromFen = fenToBoard(randomfen);
+        placePiecesUsingFen(boardFromFen);
+    }
+    
+    const difficulties = {
+        'easy': { countdown: 15, round: -1 },
+        'medium': { countdown: 7, round: 7 },
+        'hard': { countdown: 3, round: 3 }
+    };
 
-    if (event.target.innerHTML.includes("easy")) {
-        startGame("easy");
-        chosenDifficultyCountdownNumber = 15;
-        chosenDifficultyRoundNumber = -1;
-        chosenDifficulty = "easy";
-    } else if (event.target.innerHTML.includes("medium")) {
-        startGame("medium");
-        chosenDifficultyCountdownNumber = 7;
-        chosenDifficultyRoundNumber = 7;
-        chosenDifficulty = "medium";
-    } else if (event.target.innerHTML.includes("hard")) {
-        startGame("hard");
-        chosenDifficultyCountdownNumber = 3;
-        chosenDifficultyRoundNumber = 3;
-        chosenDifficulty = "hard";
+    for (const [key, value] of Object.entries(difficulties)) {
+        if (event.target.innerHTML.includes(key)) {
+            startGame(key);
+            chosenDifficultyCountdownNumber = value.countdown;
+            chosenDifficultyRoundNumber = value.round;
+            chosenDifficulty = key;
+            break;
+        }
     }
 }
 
@@ -153,8 +151,6 @@ function listToFEN(pieceList) {
             fen += "/";
         }
     }
-
-    // fen += ' w KQkq - 0 1';
 
     return fen;
 }
@@ -274,14 +270,14 @@ function submitFunct() {
                 // Game not finished if errorCount is lower than the round number
                 errorCount++;
                 if (errorCount < chosenDifficultyRoundNumber) {
-                    displayErrorMessage(data.message);
+                    displayErrorMessage(data.message, chosenDifficultyCountdownNumber + 1);
                     gameOnFlag = true;
                     gameisnotover();
 
                 // "EASY MODE" logic for infinite amount of tries
                 } else if (chosenDifficultyRoundNumber === -1) {
 
-                // Game finished user couldn't get the correct position
+                // Game finished, user couldn't get the correct position
                 } else {
                     errorCount = 0;
                     fetch("/record_fail/", {
@@ -320,16 +316,10 @@ function gameisnotover() {
         activePiece = null;
     }
     if (previouslyClickedPiece && previouslyClickedPiece.alt != "trash") {
-        AttributesToRemove = document.querySelector(
-            ".chess_pieces.animate-background"
-        );
-        AttributesToRemove.classList.remove("animate-background");
-        AttributesToRemove.style.background = "";
+        previouslyClickedPiece.classList.remove("animate-background");
+        previouslyClickedPiece.style.background = "";
         previouslyClickedPiece = null;
-    } else if (
-        previouslyClickedPiece &&
-        previouslyClickedPiece.alt === "trash"
-    ) {
+    } else if ( previouslyClickedPiece && previouslyClickedPiece.alt === "trash") {
         document
             .querySelectorAll(".trash.animate-background")
             .forEach((element) => {
@@ -349,7 +339,9 @@ function gameisnotover() {
     startCountdown(chosenDifficultyCountdownNumber);
 }
 
-function displayErrorMessage(message) {
+let errorMessageSecond = 0;
+
+function displayErrorMessage(message, errorMessageSecond) {
     // Find the existing message container
     const messagesDiv = document.querySelector(".message_container");
     messagesDiv.classList.add("messages");
@@ -370,7 +362,7 @@ function displayErrorMessage(message) {
     // Clear the message div after 3 seconds
     setTimeout(() => {
         messagesDiv.innerHTML = "";
-    }, 3000);
+    }, errorMessageSecond * 1000);
 }
 
 function displaySuccessMessage(message) {
@@ -666,7 +658,6 @@ function choosePiece(event) {
     document.body.appendChild(activePiece);
 
     // Piece movement logic, eventlisteners etc.
-
     movePiece(event); // Position it immediately
     document.addEventListener("mousemove", movePiece);
 

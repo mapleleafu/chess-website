@@ -69,33 +69,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let randomfen;
 let boardFromFen;
-let chosenDifficultyNumber;
+let chosenDifficultyCountdownNumber;
 let chosenDifficulty;
+let chosenDifficultyRoundNumber;
 
 function videoFunct(event) {
     // Getting the fen list from the database
     fetch("/get_fen_list/")
-        .then((response) => response.json())
+        .then((response) => {
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            return response.json();
+        })
         .then((data) => {
-            const fenList = data.fen_list;
-            randomfen = fenList[Math.floor(Math.random() * fenList.length)];
+            if (data) {
+                const fenList = data.fen_list;
+                randomfen = fenList[Math.floor(Math.random() * fenList.length)];
 
-            // Convert the random FEN to a board and place the pieces
-            boardFromFen = fenToBoard(randomfen);
-            placePiecesUsingFen(boardFromFen);
+                // Convert the random FEN to a board and place the pieces
+                boardFromFen = fenToBoard(randomfen);
+                placePiecesUsingFen(boardFromFen);
+            }
         });
 
     if (event.target.innerHTML.includes("easy")) {
         startGame("easy");
-        chosenDifficultyNumber = 15;
+        chosenDifficultyCountdownNumber = 15;
+        chosenDifficultyRoundNumber = -1;
         chosenDifficulty = "easy";
     } else if (event.target.innerHTML.includes("medium")) {
         startGame("medium");
-        chosenDifficultyNumber = 7;
+        chosenDifficultyCountdownNumber = 7;
+        chosenDifficultyRoundNumber = 7;
         chosenDifficulty = "medium";
     } else if (event.target.innerHTML.includes("hard")) {
         startGame("hard");
-        chosenDifficultyNumber = 3;
+        chosenDifficultyCountdownNumber = 3;
+        chosenDifficultyRoundNumber = 3;
         chosenDifficulty = "hard";
     }
 }
@@ -168,7 +180,7 @@ function startCountdown(difficulty) {
 
     const countdownElement = document.querySelector(".countdown");
     if (countdownElement.style.display != "block")
-        countdownElement.style.display = "block"; // Make it visible
+        countdownElement.style.display = "block"; 
 
     let counter = difficulty;
 
@@ -215,6 +227,7 @@ function countdownEnd_placementStart() {
 
 let gameOnFlag = false;
 let piecesByUser;
+let errorCount = 0;
 
 function submitFunct() {
     const csrftoken = getCookie("csrftoken");
@@ -241,7 +254,7 @@ function submitFunct() {
         .then((response) => response.json())
         .then((data) => {
             if (data.status === "success") {
-                fetch("/record_success", {
+                fetch("/record_success/", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -252,14 +265,42 @@ function submitFunct() {
                     }),
                 }).then((response) => response.json())
                   .then((data) => {
-                      if(data.status === "recorded") {
+                      if(data.status === "Passed") {
                           window.location.href = "/memory_rush";
+                          errorCount = 0;
                       }
                   });
             } else if (data.status === "error") {
-                displayErrorMessage(data.message);
-                gameOnFlag = true;
-                gameisnotover();
+                // Game not finished if errorCount is lower than the round number
+                errorCount++;
+                if (errorCount < chosenDifficultyRoundNumber) {
+                    displayErrorMessage(data.message);
+                    gameOnFlag = true;
+                    gameisnotover();
+
+                // "EASY MODE" logic for infinite amount of tries
+                } else if (chosenDifficultyRoundNumber === -1) {
+
+                // Game finished user couldn't get the correct position
+                } else {
+                    errorCount = 0;
+                    fetch("/record_fail/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrftoken,
+                        },
+                        body: JSON.stringify({
+                            FENcode: randomfen,
+                        }),
+                    }).then((response) => response.json())
+                      .then((data) => {
+                          if(data.status === "Failed") {
+                              window.location.href = "/memory_rush";
+                              errorCount = 0;
+                          }
+                      });
+                }
             }
         });
 }
@@ -305,7 +346,7 @@ function gameisnotover() {
     placePiecesUsingFen(boardFromFen);
 
     // Start the countdown
-    startCountdown(chosenDifficultyNumber);
+    startCountdown(chosenDifficultyCountdownNumber);
 }
 
 function displayErrorMessage(message) {

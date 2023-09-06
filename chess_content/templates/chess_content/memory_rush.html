@@ -4,7 +4,8 @@
 {% block title %}Memory Rush{% endblock %}
 
 
-{% block body %}
+{% block body %}   
+    <script src="{% static 'chess_content/memory_rush.js' %}" defer></script>
     <div class="message_container">
         {% if message %}
             <div class="messages">

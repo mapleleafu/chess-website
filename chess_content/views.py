@@ -1,5 +1,10 @@
 from django.shortcuts import render, redirect
+from django.db import IntegrityError
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.urls import reverse
+from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
 
@@ -9,25 +14,36 @@ from .models import User, ChessGame, PlayedGame
 def index(request):
     return render(request, "chess_content/index.html")
 
-
-
 @csrf_exempt
 def record_success(request):
     if request.method == "POST":
         user = request.user
         data = json.loads(request.body.decode('utf-8'))
-        chess_game_id = data.get('chessGameId')
+        FENcode = data.get('FENcode')
         
-        try:
-            chess_game = ChessGame.objects.get(pk=chess_game_id)
-        except ChessGame.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "Game does not exist"})
+        chess_game = ChessGame.objects.get(fen_string=FENcode)
 
         PlayedGame.objects.create(user=user, chess_game=chess_game, success=True)
-        return JsonResponse({"status": "recorded"})
+        return JsonResponse({"status": "Passed"})
+
+@csrf_exempt
+def record_fail(request):
+    if request.method == "POST":
+        user = request.user
+        data = json.loads(request.body.decode('utf-8'))
+        FENcode = data.get('FENcode')
+        
+        chess_game = ChessGame.objects.get(fen_string=FENcode)
+
+        PlayedGame.objects.create(user=user, chess_game=chess_game, success=False)
+        return JsonResponse({"status": "Failed"})
 
 @csrf_exempt
 def memory_rush(request):
+    if request.method == "GET":
+        if 'hard.mp4' in request.path_info:
+            # Handle the GET request for hard.mp4
+            return HttpResponse('This is a GET request for hard.mp4')
     white_piece_filenames = ['wk.png', 'wq.png', 'wr.png', 'wb.png', 'wn.png', 'wp.png']
     black_piece_filenames=  ['bk.png', 'bq.png', 'br.png', 'bb.png', 'bn.png', 'bp.png']
     video_names = ['easy', 'medium', 'hard']
@@ -66,6 +82,8 @@ def memory_rush(request):
         else:
             # Printing missing pieces, delete later
             compare_piece_sets(Fen_position_sorted, transformed_data_sorted)
+            request.session['message'] = "Couldn't Match the Memory"
+            request.session['message_type'] = 'error'
             return JsonResponse({'message': 'Pieces Not Correct', 'status': 'error'})
 
     return render(request, 'chess_content/memory_rush.html', 
@@ -89,9 +107,11 @@ def compare_piece_sets(Fen_position_sorted, transformed_data_sorted):
     if removed_pieces:
         print("Needed pieces:", [dict(t) for t in removed_pieces])
 
-
 # Get FEN lists from the database
 def get_fen_list(request):
+    # Check if the user is authenticated
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'unauthenticated'}, status=401)
     chessgames = ChessGame.objects.all()
     fen_list = [game.fen_string for game in chessgames]
     return JsonResponse({'fen_list': fen_list})
@@ -132,3 +152,41 @@ def position_to_square(left, top):
     row = 8 - (top // 90)
     
     return f'{column}{row}'
+
+def login_view(request):
+    if request.method == "POST":    
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return HttpResponseRedirect(reverse("index"))
+        else:
+            messages.error(request, "Invalid username and/or password.")
+            return HttpResponseRedirect(reverse('login'))
+    else:
+        return render(request, "chess_content/login.html")
+
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect(reverse("index"))
+
+def register(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        email = request.POST["email"]
+        password = request.POST["password"]
+        confirmation = request.POST["confirmation"]
+        if password != confirmation:
+            messages.error(request, "Passwords must match.")
+            return HttpResponseRedirect(reverse('register'))
+        try:
+            user = User.objects.create_user(username, email, password)
+            user.save()
+        except IntegrityError:
+            messages.error(request, "Username already taken.")
+            return HttpResponseRedirect(reverse('register'))
+        login(request, user)
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        return render(request, "chess_content/register.html")

@@ -67,8 +67,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-let randomfen;
-let boardFromFen;
+let randomFEN;
+let boardFromFEN;
 let chosenDifficultyCountdownNumber;
 let chosenDifficulty;
 let chosenDifficultyRoundNumber;
@@ -86,11 +86,16 @@ async function videoFunct(event) {
     const data = await response.json();
     if (data) {
         const fenList = data.fen_list;
-        randomfen = fenList[Math.floor(Math.random() * fenList.length)];
-
-        // Convert the random FEN to a board and place the pieces
-        boardFromFen = fenToBoard(randomfen);
-        placePiecesUsingFen(boardFromFen);
+        // If the user has seen all the FEN positions
+        if (fenList.length === 0) {
+            // TODO: Add a logic here 
+            window.location.href = '/profile';
+        } else {
+            randomFEN = fenList[Math.floor(Math.random() * fenList.length)];
+            // Convert the random FEN to a board and place the pieces
+            boardFromFEN = fenToBoard(randomFEN);
+            placePiecesUsingFen(boardFromFEN);
+        }
     }
     
     const difficulties = {
@@ -197,20 +202,20 @@ function startCountdown(difficulty) {
             countdownElement.style.display = "none";
             clearFunct();
             countdownElement.textContent = "";
-            countdownEnd_placementStart();
+            countdownEndPlacementStart();
         } else if (counter < 0 && gameOnFlag === true) {
             clearInterval(interval);
             countdownElement.style.display = "none";
-            user_playing_FEN = fenToBoard(listToFEN(piecesByUser));
+            userPlayingFEN = fenToBoard(listToFEN(piecesByUser));
             clearFunct();
-            placePiecesUsingFen(user_playing_FEN);
+            placePiecesUsingFen(userPlayingFEN);
             countdownElement.textContent = "";
-            countdownEnd_placementStart();
+            countdownEndPlacementStart();
         }
     }, 1000); // Run every second
 }
 
-function countdownEnd_placementStart() {
+function countdownEndPlacementStart() {
     // Display visibility settings for other buttons and pieces
     document.querySelector(".white_chess_pieces").style.visibility = "visible";
     document.querySelector(".black_chess_pieces").style.visibility = "visible";
@@ -244,7 +249,7 @@ function submitFunct() {
         },
         body: JSON.stringify({
             piecesByUser: piecesByUser,
-            boardFromFen: boardFromFen,
+            boardFromFEN: boardFromFEN,
         }),
     })
         .then((response) => response.json())
@@ -257,7 +262,7 @@ function submitFunct() {
                         "X-CSRFToken": csrftoken,
                     },
                     body: JSON.stringify({
-                        FENcode: randomfen,
+                        FENcode: randomFEN,
                     }),
                 }).then((response) => response.json())
                   .then((data) => {
@@ -272,7 +277,7 @@ function submitFunct() {
                 if (errorCount < chosenDifficultyRoundNumber) {
                     displayErrorMessage(data.message, chosenDifficultyCountdownNumber + 1);
                     gameOnFlag = true;
-                    gameisnotover();
+                    gameIsNotOver();
 
                 // "EASY MODE" logic for infinite amount of tries
                 } else if (chosenDifficultyRoundNumber === -1) {
@@ -287,7 +292,7 @@ function submitFunct() {
                             "X-CSRFToken": csrftoken,
                         },
                         body: JSON.stringify({
-                            FENcode: randomfen,
+                            FENcode: randomFEN,
                         }),
                     }).then((response) => response.json())
                       .then((data) => {
@@ -301,7 +306,7 @@ function submitFunct() {
         });
 }
 
-function gameisnotover() {
+function gameIsNotOver() {
     // Adding memory rush's page
     document.querySelector(".main_wrapper").style.display = "flex";
 
@@ -332,8 +337,8 @@ function gameisnotover() {
 
     // Set up the original position
     clearFunct();
-    boardFromFen = fenToBoard(randomfen);
-    placePiecesUsingFen(boardFromFen);
+    boardFromFEN = fenToBoard(randomFEN);
+    placePiecesUsingFen(boardFromFEN);
 
     // Start the countdown
     startCountdown(chosenDifficultyCountdownNumber);

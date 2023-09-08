@@ -13,8 +13,24 @@ import json
 from .models import User, ChessGame, PlayedGame
 
 
-def index(request):
-    return render(request, "chess_content/index.html")
+def home(request):
+    return render(request, "chess_content/home.html")
+
+def profile(request):
+    seen_games = PlayedGame.objects.filter(user=request.user).select_related('chess_game')
+
+    fen_data = [
+        {
+            'fen_string': game.chess_game.fen_string,
+            'success': game.success,
+            'played_at': game.played_at.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        for game in seen_games
+    ]
+
+    return render(request, "chess_content/profile.html", 
+                  {'fen_data': fen_data})
+
 
 @csrf_exempt
 def record_success(request):
@@ -57,7 +73,7 @@ def memory_rush(request):
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         pieces_by_user = data['piecesByUser']
-        Fen_Position = data['boardFromFen']
+        Fen_Position = data['boardFromFEN']
         Fen_position_sorted = sorted(transform_board_to_square_data(Fen_Position), key=lambda x: (x['square'], x['name']))
     
         transformed_data = []
@@ -107,12 +123,17 @@ def compare_piece_sets(Fen_position_sorted, transformed_data_sorted):
 
 # Get FEN lists from the database
 def get_fen_list(request):
-    # Check if the user is authenticated
     if not request.user.is_authenticated:
         messages.error(request, "You have to log in to play.")
         return JsonResponse({'status': 'unauthenticated'}, status=401)
-    chessgames = ChessGame.objects.all()
-    fen_list = [game.fen_string for game in chessgames]
+
+    # Get IDs of ChessGame instances already seen by the user
+    seen_game_ids = PlayedGame.objects.filter(user=request.user).values_list('chess_game_id', flat=True)
+  
+    # Exclude seen ChessGames
+    unseen_chessgames = ChessGame.objects.exclude(id__in=seen_game_ids)
+  
+    fen_list = [game.fen_string for game in unseen_chessgames]
     return JsonResponse({'fen_list': fen_list})
 
 def transform_board_to_square_data(boardFromFen):
@@ -160,7 +181,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, "Successfully logged in.")
-            return HttpResponseRedirect(reverse("index"))
+            return HttpResponseRedirect(reverse("home"))
         else:
             messages.error(request, "Invalid username and/or password.")
             return HttpResponseRedirect(reverse('login'))
@@ -170,7 +191,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.info(request, "Logged out.")
-    return HttpResponseRedirect(reverse("index"))
+    return HttpResponseRedirect(reverse("home"))
 
 def register(request):
     if request.method == "POST":
@@ -200,6 +221,6 @@ def register(request):
             return HttpResponseRedirect(reverse('register'))
         login(request, user)
         messages.success(request, "Registration successful.")
-        return HttpResponseRedirect(reverse("index"))
+        return HttpResponseRedirect(reverse("home"))
     else:
         return render(request, "chess_content/register.html")

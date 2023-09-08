@@ -248,3 +248,17 @@ button{
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+.test {
+    color:white;
+}
+
+.profile_games {
+    color: white;
+    display: flex;
+    flex: content;
+}
+
+.game {
+    margin: 20px;
+}

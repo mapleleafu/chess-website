@@ -1,30 +1,34 @@
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".game").forEach(element => {
+        const boardContainer = element.querySelector(".board_container");
+        const pieceContainer = element.querySelector(".piece_container");
+
+        // Create and append the chessboard image to each game
         const img = document.createElement("img");
-        img.src = "static/chess_content/assets/board.png"
-
-        img.alt = "Chess Board";
-        img.width = 250;
-        img.height = 250;
+        img.src = "static/chess_content/assets/board.png";
+        img.alt = "chess_board";
+        img.width = 240;
+        img.height = 240;
         img.draggable = false;
-        img.style.userSelect = 'none'; 
-        img.style.webkitUserDrag = 'none'; 
-        img.classList.add('board');
+        img.style.userSelect = 'none';
+        img.style.webkitUserDrag = 'none';
+        img.classList.add('profile_board');
+        boardContainer.appendChild(img);
 
-        // Append the image to the current .game element
-        element.appendChild(img);
+        // Get the FEN for each game
+        const fenData = element.getAttribute('data-fen');
+
+        // Convert FEN to board and place pieces
+        const boardFromFEN = fenToBoard(fenData);
+        placePiecesFromFEN(boardFromFEN, pieceContainer);
     });
 });
 
-boardFromFEN = fenToBoard("k7/8/8/8/8/8/8/K7 w - - 0 1");
-placePiecesUsingFen(boardFromFEN);
-
-
-function placePiecesUsingFen(board) {
+function placePiecesFromFEN(board, pieceContainer) {
     if (!board) {
         return;
     }
-    const boardContainer = document.querySelector(".game");
+
     const squareWidth = 30;
     const squareHeight = 30;
 
@@ -47,6 +51,7 @@ function placePiecesUsingFen(board) {
         p: "/static/chess_content/assets/pieces/bp.png",
     };
 
+    pieceContainer.innerHTML = '';  // Clear any existing pieces in the container
     for (let y = 0; y < board.length; y++) {
         for (let x = 0; x < board[y].length; x++) {
             const piece = board[y][x];
@@ -68,9 +73,9 @@ function placePiecesUsingFen(board) {
                     userSelect: "none",
                     border: "0px",
                 });
-                duplicate.classList.add("chess_pieces");
+                duplicate.classList.add("profile_piece");
                 duplicate.setAttribute("draggable", "false");
-                boardContainer.appendChild(duplicate);
+                pieceContainer.appendChild(duplicate);
             }
         }
     }
@@ -108,3 +113,20 @@ function fenToBoard(fen) {
     }
     return board;
 }
+
+// Maximizing FEN text to 20 characters, and then it goes to a new line
+$(document).ready(function() {
+    $(".fen_string").each(function() {
+        var text = $(this).text();
+        var modifiedText = '';
+        
+        for (var i = 0; i < text.length; i++) {
+            modifiedText += text[i];
+            if ((i + 1) % 20 === 0) {
+                modifiedText += '<br>';
+            }
+        }
+        
+        $(this).html(modifiedText);
+    });
+});

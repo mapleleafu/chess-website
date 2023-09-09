@@ -249,16 +249,23 @@ button{
     transform: translate(-50%, -50%);
 }
 
-.test {
-    color:white;
-}
-
 .profile_games {
     color: white;
     display: flex;
-    flex: content;
+    flex-direction: row; /* To line up games horizontally */
 }
 
 .game {
     margin: 20px;
+    display: flex;
+    flex-direction: column;  /* Stack the elements vertically */
+}
+
+.board_container {
+    position: relative;
+    display: flex;
+}
+
+.game_info {
+    margin-top: 10px;
 }

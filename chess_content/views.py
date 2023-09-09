@@ -16,7 +16,7 @@ from .models import User, ChessGame, PlayedGame
 def home(request):
     return render(request, "chess_content/home.html")
 
-def profile(request):
+def game_history(request):
     seen_games = PlayedGame.objects.filter(user=request.user).select_related('chess_game')
 
     fen_data = [
@@ -28,7 +28,7 @@ def profile(request):
         for game in seen_games
     ]
 
-    return render(request, "chess_content/profile.html", 
+    return render(request, "chess_content/game_history.html", 
                   {'fen_data': fen_data})
 
 

@@ -99,8 +99,8 @@ async function videoFunct(event) {
     }
     
     const difficulties = {
-        'easy': { countdown: 15, round: -1 },
-        'medium': { countdown: 7, round: 7 },
+        'easy': { countdown: 10, round: 10 },
+        'medium': { countdown: 5, round: 5 },
         'hard': { countdown: 3, round: 3 }
     };
 
@@ -175,8 +175,8 @@ function startGame(difficulty) {
 }
 
 function startCountdown(difficulty) {
-    if (difficulty === "easy") difficulty = 15;
-    else if (difficulty === "medium") difficulty = 7;
+    if (difficulty === "easy") difficulty = 10;
+    else if (difficulty === "medium") difficulty = 5;
     else if (difficulty === "hard") difficulty = 3;
 
     const countdownElement = document.querySelector(".countdown");

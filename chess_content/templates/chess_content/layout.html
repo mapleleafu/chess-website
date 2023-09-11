@@ -4,46 +4,53 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}Chess{% endblock %}</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link href="{% static 'chess_content/styles.css' %}" rel="stylesheet">
     </head>
     <body>
-        <div class="nav_panel">
-            <ul class="nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'home' %}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'memory_rush' %}">Memory Rush</a>
-                </li>
-                {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'game_history' %}">Game History</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Log In</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">Register</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-        <div class="content-container">
-            {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>
-                    {% endfor %}
+        <div class="page-container">
+            <div class="sidebar">
+                <div class="sidebar-item">
+                    <img src="static/chess_content/assets/home_icon.jpg" alt="home">
+                    <a href="{% url 'home' %}" class="item-text">Home</a>
+                </div>            
+                <div class="sidebar-item">
+                  <img src="static/chess_content/assets/memory_icon.jpg" alt="memory_rush">
+                  <a href="{% url 'memory_rush' %}" class="item-text">Memory Rush</a>
                 </div>
-            {% endif %}
-            {% block body %}
-            {% endblock %}
+                {% if user.is_authenticated %}
+                <div class="sidebar-item">
+                  <img src="static/chess_content/assets/history_icon.jpg" alt="game_history">
+                  <a href="{% url 'game_history' %}" class="item-text">Game History</a>
+                </div>
+                <div class="sidebar-item">
+                  <img src="static/chess_content/assets/login_icon.jpg" alt="logout">
+                  <a href="{% url 'logout' %}" class="item-text">Log Out</a>
+                </div>
+                {% else %}
+                <div class="sidebar-item">
+                  <img src="static/chess_content/assets/login_icon.jpg" alt="login">
+                  <a href="{% url 'login' %}" class="item-text">Login</a>
+                </div>
+                <div class="sidebar-item">
+                  <img src="static/chess_content/assets/login_icon.jpg" alt="register">
+                  <a href="{% url 'register' %}" class="item-text">Register</a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="content-container">
+                {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% block body %}
+                {% endblock %}
+            </div>
         </div>
     </body>
 </html>

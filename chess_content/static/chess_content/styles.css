@@ -13,33 +13,53 @@ body {
     height: 100%;
     transition: width 0.3s ease;
     z-index: 9999;
-  }
+}
   
 .sidebar-item {
     display: flex;
     align-items: center;
-    padding: 10px;
+    margin-top: 25px;
     color: white;
 }
-  
+
+#sidebar-item1 img {
+    margin-left: -4px; 
+}
+
+#sidebar-item2 img {
+    margin-left: -5px; 
+}
+
+#sidebar-item4 img {
+    margin-left: -6px; 
+}
+
 .sidebar-item img {
-    width: 40px;
-    height: 40px;
+    width: 70px;
+    height: 70px;
 }
   
 .item-text {
     display: none;
+    margin-left: 15px;
+    color: wheat
 }
-  
+
+.item-text:hover {
+    color: rgb(247, 202, 118);
+}
+
 .sidebar:hover {
     width: 200px;
 }
   
 .sidebar:hover .item-text {
     display: inline;
+    text-decoration: none;
 }
 
 .main_header {
+    margin-top: 20px;
     text-align: center;
 }
 
@@ -82,6 +102,30 @@ button{
     animation: scaleUp 5s steps(5);
 }
 
+.register_text,
+.have_account_text {
+    color: rgb(247, 202, 118);
+}
+
+.a_link {
+    color:rgb(233, 148, 22);
+}
+
+.a_link:hover {
+    text-decoration:none;
+    color: rgb(158, 102, 17);;
+}
+
+.btn.btn-primary.register {
+    background-color: rgb(233, 148, 22);
+    border-color: orange;
+}
+
+.btn.btn-primary.register:hover {
+    background-color:rgb(158, 100, 13);
+    border-color: rgb(109, 76, 15);
+}
+
 @keyframes scaleUp {
     0% { transform: scale(1); }
     100% { transform: scale(1.5); }
@@ -106,6 +150,20 @@ button{
     text-align: center;
     justify-content: center;
     width: 100px;  
+    gap: 2px;
+}
+
+.button_row {
+    justify-content: center;
+    align-items: center;
+    display: contents;
+}
+
+.board_and_controls {
+    display: flex;
+    flex-direction: row; /* By default, set flex direction to row */
+    justify-content: center;
+    align-items: center;
 }
 
 .board_and_duplicates {
@@ -240,6 +298,7 @@ button{
     color: rgb(233, 148, 22);
     text-align: center;
     font-weight: bold;
+    margin-top: 50px;
 }
 
 .p1 {
@@ -254,7 +313,7 @@ button{
     flex-wrap: wrap;  
     justify-content: center;
     align-items: center; /* Center items vertically */
-    min-height: 80vh;  /* 80% of the viewport height */
+    min-height: 70vh;  /* 80% of the viewport height */
     gap: 30px;
 }
 
@@ -285,6 +344,12 @@ button{
     border-radius: 5px;
 }
 
+.icon-text-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+/* Mobile view */
 @media only screen and (max-width: 450px) {
     .hover-play-video {
         flex-direction: column;
@@ -302,7 +367,69 @@ button{
         align-items: center;
     }
     .memory_board {
-        width: 100%;
-        height: 100%;
+        width: 240px;
+        height: 240px;
+    }
+    .control_panel {
+        width: 100%;  
+        order: 2;  
+    }
+    .button_row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        width: 70%;
+        gap: 15px;
+    }
+    .black_original_pieces,
+    .white_original_pieces {
+        width: 310px;
+    }
+    .board_and_controls {  
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; 
+    }
+    .chess_pieces {
+        width: 33.3px;
+        height: 33.3px;
+        border: 0px solid;
+        margin-left: 2px;
+    }
+    .trash,
+    .cursor {
+        width: 30.4px;
+        height: 27.3px;
+        border: 0px solid;
+    }
+    .btn {
+        padding: 0px;
+        width: 50px;
+        height: 70%;
+        font-size:0.6em;
+    }
+    .sidebar:hover {
+        width: 135px;
+    }
+    .item-text {
+        margin-left: 8px;
+    }
+    .main_header {
+        margin-top: 5px;
+    }
+    .messages {
+        width: 70%;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+    }
+    .icon-text-wrapper {
+        flex-direction: column;
+    }
+    .sidebar-item img {
+        width: 70px;
+        height: 70px;
     }
 }

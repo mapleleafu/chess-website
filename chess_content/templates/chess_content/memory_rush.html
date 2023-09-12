@@ -16,39 +16,44 @@
         {% endif %}
     </div>
     <div class="main_wrapper">
-        <div class="main_content">
-            <div class="black_chess_pieces">
-                <div class="black_original_pieces">
-                    <img src="{% static 'chess_content/assets/cursor.png' %}" draggable="false" alt="cursor" class="cursor">
-                    {% for piece in black_piece_filenames %}
-                        <img src="{% static 'chess_content/assets/pieces/'|add:piece %}" draggable="false" alt="{{ piece }}" class="chess_pieces">
-                    {% endfor %}
-                    <img src="{% static 'chess_content/assets/trash.png' %}" draggable="false" alt="trash" class="trash">
-                </div>
-            </div>
-            <div class="board_and_duplicates">
-                <div class="countdown-wrapper">
-                    <div class="countdown" style="display:none;"></div>
-                    <div class="board_container">
-                        <img src="{% static 'chess_content/assets/board.png' %}" draggable="false" alt="board" class="memory_board">
+        <div class="board_and_controls">
+            <div class="main_content">
+                <div class="black_chess_pieces">
+                    <div class="black_original_pieces">
+                        <img src="{% static 'chess_content/assets/cursor.png' %}" draggable="false" alt="cursor" class="cursor">
+                        {% for piece in black_piece_filenames %}
+                            <img src="{% static 'chess_content/assets/pieces/'|add:piece %}" draggable="false" alt="{{ piece }}" class="chess_pieces">
+                        {% endfor %}
+                        <img src="{% static 'chess_content/assets/trash.png' %}" draggable="false" alt="trash" class="trash">
                     </div>
                 </div>
-                <div class="duplicate_piece_container"></div>
-            </div>
-            <div class="white_chess_pieces">
-                <div class="white_original_pieces">
-                    <img src="{% static 'chess_content/assets/cursor.png' %}" draggable="false" alt="cursor" class="cursor">
-                    {% for piece in white_piece_filenames %}
-                        <img src="{% static 'chess_content/assets/pieces/'|add:piece %}" draggable="false" alt="{{ piece }}" class="chess_pieces">
-                    {% endfor %}
-                    <img src="{% static 'chess_content/assets/trash.png' %}" draggable="false" alt="trash" class="trash">
+                <div class="board_and_duplicates">
+                    <div class="countdown-wrapper">
+                        <div class="countdown" style="display:none;"></div>
+                        <div class="board_container">
+                            <img src="{% static 'chess_content/assets/board.png' %}" draggable="false" alt="board" class="memory_board">
+                        </div>
+                    </div>
+                    <div class="duplicate_piece_container"></div>
+                </div>
+                <div class="white_chess_pieces">
+                    <div class="white_original_pieces">
+                        <img src="{% static 'chess_content/assets/cursor.png' %}" draggable="false" alt="cursor" class="cursor">
+                        {% for piece in white_piece_filenames %}
+                            <img src="{% static 'chess_content/assets/pieces/'|add:piece %}" draggable="false" alt="{{ piece }}" class="chess_pieces">
+                        {% endfor %}
+                        <img src="{% static 'chess_content/assets/trash.png' %}" draggable="false" alt="trash" class="trash">
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="control_panel">
-            <button type="submit" data-post-id="submit" class="btn btn-success submit">Submit</button>
-            <button class="btn btn-danger clear">Clear All</button>
-            <button class="btn btn-secondary flip">Flip Board</button>
+            <div class="control_panel">
+                <div class="button_row">
+                    <button type="submit" data-post-id="submit" class="btn btn-success submit">Submit</button>
+                    <button class="btn btn-danger clear">Clear All</button>
+                    <button class="btn btn-secondary flip">Flip Board</button>
+                </div>
+            </div>
+            
         </div>
     </div>
     <div class="welcome_page">

@@ -72,6 +72,7 @@ let boardFromFEN;
 let chosenDifficultyCountdownNumber;
 let chosenDifficulty;
 let chosenDifficultyRoundNumber;
+let viewportWidth;
 
 async function videoFunct(event) {
     // Getting the fen list from the database
@@ -82,7 +83,9 @@ async function videoFunct(event) {
         window.location.href = '/login';
         return;
     }
-    
+
+
+
     const data = await response.json();
     if (data) {
         const fenList = data.fen_list;
@@ -103,6 +106,20 @@ async function videoFunct(event) {
         'medium': { countdown: 5, round: 5 },
         'hard': { countdown: 3, round: 3 }
     };
+
+    viewportWidth = window.innerWidth;
+
+    // Removing sidebar and making top-sidebar visible if user is on mobile
+    if (viewportWidth <= 450) {
+        const sidebar = document.querySelector('.sidebar');
+        const pagecontainer = document.querySelector('.page-container');
+        if (sidebar) {
+            pagecontainer.removeChild(sidebar);
+        }
+         const topsidebar = document.querySelector('.top-sidebar');
+         topsidebar.style.visibility = 'visible';
+    }
+    
 
     for (const [key, value] of Object.entries(difficulties)) {
         if (event.target.innerHTML.includes(key)) {
@@ -394,8 +411,16 @@ function placePiecesUsingFen(board) {
         return;
     }
     const boardContainer = document.querySelector(".duplicate_piece_container");
-    const squareWidth = 90;
-    const squareHeight = 90;
+
+    // Declaring width and height depending on browser's width
+    viewportWidth = window.innerWidth;
+    if (viewportWidth <= 450) {
+        squareWidth = 50;
+        squareHeight = 50;        
+    } else {
+        squareWidth = 90;
+        squareHeight = 90;
+    }
 
     // Mapping of FEN pieces to their image URLs
     const pieceToImage = {
@@ -451,24 +476,24 @@ function fenToBoard(fen) {
     if (!fen) {
         return;
     }
-    // Split the FEN string into its components: board, turn, castling, etc.
+    // Split the FEN string into its components: board, turn, castling, etc
     const [fenBoard] = fen.split(" ");
 
-    // Split the board part of the FEN string into ranks.
+    // Split the board part of the FEN string into ranks
     const fenRanks = fenBoard.split("/");
 
     // Initialize an empty board.
     const board = [];
 
-    // Loop through each rank in the FEN string.
+    // Loop through each rank in the FEN string
     for (const fenRank of fenRanks) {
         const rank = [];
         for (const char of fenRank) {
             if (isNaN(char)) {
-                // If the character is not a number, it represents a piece.
+                // If the character is not a number, it represents a piece
                 rank.push(char);
             } else {
-                // If the character is a number, it represents empty squares.
+                // If the character is a number, it represents empty squares
                 const emptySquares = parseInt(char, 10);
                 for (let i = 0; i < emptySquares; i++) {
                     rank.push(null);
@@ -647,11 +672,16 @@ function choosePiece(event) {
 
     // Clone and modify the clicked piece to make it the active piece
     activePiece = clickedPiece.cloneNode(true);
+
+    // Determine the width and height based on the viewport width (mobile/browser)
+    const pieceWidth = viewportWidth <= 450 ? "50px" : "90px";
+    const pieceHeight = viewportWidth <= 450 ? "50px" : "90px";
+
     Object.assign(activePiece.style, {
         position: "absolute",
         zIndex: "9998",
-        width: "90px",
-        height: "90px",
+        width: pieceWidth,
+        height: pieceHeight,
         pointerEvents: "none", // So it doesn't interfere with other events
         backgroundColor: "", // Remove inherited background color
         border: "0px",
@@ -698,7 +728,15 @@ function choosePiece(event) {
     document
         .querySelector(".memory_board")
         .addEventListener("click", placePiece);
+
+    // If on mobile, activePiece is not visible on the cursor
+    if (viewportWidth <= 450) {
+        activePiece.remove();
+    }
 }
+
+let squareWidth;
+let squareHeight;
 
 function placePiece(event) {
     if (!activePiece || activePiece.className == "trash animate-background")
@@ -719,9 +757,14 @@ function placePiece(event) {
     const x = event.clientX,
         y = event.clientY;
 
-    const squareWidth = activePiece.width;
-    const squareHeight = activePiece.height;
-
+    // Mobile piece placement logic
+    if (viewportWidth <= 450) {
+        squareWidth = 50;
+        squareHeight = 50;        
+    } else {
+        squareWidth = activePiece.width;
+        squareHeight = activePiece.height;
+    }
     // Check if the coordinates (x, y) are within the boundaries of the chess board
     if (
         x >= boardX &&

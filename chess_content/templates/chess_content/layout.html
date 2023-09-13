@@ -10,6 +10,34 @@
         <link href="{% static 'chess_content/styles.css' %}" rel="stylesheet">
     </head>
     <body>
+        <div class="top-sidebar">
+            <div class="sidebar-item">
+                <img src="static/chess_content/assets/home_icon.png" alt="home">
+                <a href="{% url 'home' %}" class="item-text">Home</a>
+            </div>
+            <div class="sidebar-item">
+                <img src="static/chess_content/assets/memory_icon.png" alt="memory_rush">
+                <a href="{% url 'memory_rush' %}" class="item-text">Memory Rush</a>
+            </div>
+            {% if user.is_authenticated %}
+            <div class="sidebar-item">
+                <img src="static/chess_content/assets/history_icon.png" alt="game_history">
+                <a href="{% url 'game_history' %}" class="item-text">Game History</a>
+            </div>
+            <div class="sidebar-item">
+                <img src="static/chess_content/assets/login_icon.png" alt="logout">
+                <a href="{% url 'logout' %}" class="item-text">Log Out</a>
+            </div>
+            {% else %}
+            <div class="sidebar-item">
+                <img src="static/chess_content/assets/login_icon.png" alt="login">
+                <div class="icon-text-wrapper">
+                    <a href="{% url 'login' %}" class="item-text">Login</a>
+                    <a href="{% url 'register' %}" class="item-text">Register</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
         <div class="page-container">
             <div class="sidebar">
                 <div class="sidebar-item one" id="sidebar-item1">
@@ -23,7 +51,7 @@
                 {% if user.is_authenticated %}
                 <div class="sidebar-item" id="sidebar-item3">
                   <img src="static/chess_content/assets/history_icon.png" alt="game_history">
-                  <a href="{% url 'game_history' %}" class="item-text">Game History</a>
+                  <a href="{% url 'game_history' %}" class="item-text" id="item-text3">Game History</a>
                 </div>
                 <div class="sidebar-item" id="sidebar-item4">
                   <img src="static/chess_content/assets/login_icon.png" alt="logout">

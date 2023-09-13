@@ -124,7 +124,7 @@ def compare_piece_sets(Fen_position_sorted, transformed_data_sorted):
 # Get FEN lists from the database
 def get_fen_list(request):
     if not request.user.is_authenticated:
-        messages.error(request, "You have to log in to play.")
+        messages.info(request, "You have to log in to play.")
         return JsonResponse({'status': 'unauthenticated'}, status=401)
 
     # Get IDs of ChessGame instances already seen by the user

@@ -30,7 +30,8 @@ body {
     margin-left: -5px; 
 }
 
-#sidebar-item4 img {
+#sidebar-item4 img,
+#sidebar-item5 img {
     margin-left: -6px; 
 }
 
@@ -41,8 +42,13 @@ body {
   
 .item-text {
     display: none;
-    margin-left: 15px;
-    color: wheat
+    margin-left: 10px;
+    color: wheat;
+    text-align: center;
+}
+
+#item-text3 {
+    margin-left: 4px; 
 }
 
 .item-text:hover {
@@ -50,7 +56,7 @@ body {
 }
 
 .sidebar:hover {
-    width: 200px;
+    width: 195px;
 }
   
 .sidebar:hover .item-text {
@@ -349,6 +355,41 @@ button{
     align-items: center;
 }
 
+.top-sidebar {
+    visibility: hidden; /* Change to visible */
+    width: 100%;
+    height: 60px; /* Initial height */
+    top: 0;
+    left: 0;
+    display: flex; /* Make sure it's flex */
+    flex-direction: row;
+    align-items: center; /* Add this to align items vertically */
+    position: fixed;
+    transition: height 0.3s ease; /* Add transition for smooth expansion */
+    z-index: 9999;
+    justify-content: space-around;
+    background-color: #333;
+}
+
+.top-sidebar img {
+    margin-top: 10px;
+}
+
+.top-sidebar:hover {
+    height: 110px; /* Expanded height */
+}
+.top-sidebar:hover .item-text {
+    display: contents;
+}
+.top-sidebar .sidebar-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  /* Centers children vertically */
+    align-items: center;      /* Centers children horizontally */
+    margin-top: -10px;
+    color: white;
+  }
+  
 /* Mobile view */
 @media only screen and (max-width: 450px) {
     .hover-play-video {
@@ -367,8 +408,8 @@ button{
         align-items: center;
     }
     .memory_board {
-        width: 240px;
-        height: 240px;
+        width: 400px;
+        height: 400px;
     }
     .control_panel {
         width: 100%;  
@@ -381,9 +422,9 @@ button{
         width: 70%;
         gap: 15px;
     }
-    .black_original_pieces,
-    .white_original_pieces {
-        width: 310px;
+    .black_chess_pieces,
+    .white_chess_pieces {
+        width: 450px;
     }
     .board_and_controls {  
         display: flex;
@@ -393,22 +434,21 @@ button{
         height: 100vh; 
     }
     .chess_pieces {
-        width: 33.3px;
-        height: 33.3px;
+        width: 55.5px;
+        height: 55.5px;
         border: 0px solid;
-        margin-left: 2px;
     }
     .trash,
     .cursor {
-        width: 30.4px;
-        height: 27.3px;
+        width: 42.5px;
+        height: 42.3px;
         border: 0px solid;
     }
     .btn {
         padding: 0px;
-        width: 50px;
-        height: 70%;
-        font-size:0.6em;
+        width: 90px;
+        height: 80%;
+        font-size:0.9em;
     }
     .sidebar:hover {
         width: 135px;

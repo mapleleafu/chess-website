@@ -39,6 +39,7 @@ class PlayedGame(models.Model):
     chess_game = models.ForeignKey(ChessGame, related_name='played_games', on_delete=models.CASCADE)
     success = models.BooleanField(default=False)
     played_at = models.DateTimeField(auto_now_add=True)
+    gotCorrectRoundNumber = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"User: {self.user.username}, Game: {self.chess_game.fen_string}, Success: {self.success}"

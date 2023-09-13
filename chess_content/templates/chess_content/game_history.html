@@ -13,8 +13,11 @@
                         <div class="piece_container"></div>
                     </div>
                     <div class="game_info">
-                        FEN: <span class="fen_string">{{ item.fen_string }}</span> <br>
+                        <span class="fen_string">FEN: {{ item.fen_string }}</span> <br>
                         Success: {{ item.success }} <br>
+                        {% if item.gotCorrectRoundNumber %}
+                            Attempts to success: {{ item.gotCorrectRoundNumber }} <br>
+                        {% endif %}
                         Played at: {{ item.played_at }} <br>
                     </div>
                 </div>

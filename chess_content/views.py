@@ -24,6 +24,7 @@ def game_history(request):
             'fen_string': game.chess_game.fen_string,
             'success': game.success,
             'played_at': game.played_at.strftime("%Y-%m-%d %H:%M:%S"),
+            'gotCorrectRoundNumber': game.gotCorrectRoundNumber,
         }
         for game in seen_games
     ]
@@ -38,10 +39,16 @@ def record_success(request):
         user = request.user
         data = json.loads(request.body.decode('utf-8'))
         FENcode = data.get('FENcode')
+        gotCorrectRoundNumber = data.get('gotCorrectRoundNumber')
         
         chess_game = ChessGame.objects.get(fen_string=FENcode)
-
-        PlayedGame.objects.create(user=user, chess_game=chess_game, success=True)
+        
+        PlayedGame.objects.create(
+            user=user,
+            chess_game=chess_game,
+            success=True,
+            gotCorrectRoundNumber=gotCorrectRoundNumber
+        )
         return JsonResponse({"status": "Passed"})
 
 @csrf_exempt
@@ -50,6 +57,7 @@ def record_fail(request):
         user = request.user
         data = json.loads(request.body.decode('utf-8'))
         FENcode = data.get('FENcode')
+        gotCorrectRoundNumber = data.get('gotCorrectRoundNumber')
         
         chess_game = ChessGame.objects.get(fen_string=FENcode)
 
@@ -82,7 +90,8 @@ def memory_rush(request):
             piece_name = piece_info['name']
             left = piece_info['left']
             top = piece_info['top']
-            square = position_to_square(left, top)
+            mobileView = piece_info['mobileView']
+            square = position_to_square(left, top, mobileView)
             transformed_data.append({'name': piece_name, 'square': square})
 
         transformed_data_sorted = sorted(transformed_data, key=lambda x: (x['square'], x['name']))
@@ -164,12 +173,16 @@ def transform_board_to_square_data(boardFromFen):
 
     return square_data
 
-def position_to_square(left, top):
+def position_to_square(left, top, mobileView):
+    if (mobileView == True):
+        pieceSize = 50
+    elif (mobileView == False):
+        pieceSize = 90
     # Calculate the column (letter) based on the left position
-    column = chr(ord('a') + (left // 90))
+    column = chr(ord('a') + (left // pieceSize))
     
     # Calculate the row (number) based on the top position
-    row = 8 - (top // 90)
+    row = 8 - (top // pieceSize)
     
     return f'{column}{row}'
 

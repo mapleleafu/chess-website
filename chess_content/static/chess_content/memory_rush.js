@@ -73,6 +73,8 @@ let chosenDifficultyCountdownNumber;
 let chosenDifficulty;
 let chosenDifficultyRoundNumber;
 let viewportWidth;
+let mobileView = false;
+let try_count;
 
 async function videoFunct(event) {
     // Getting the fen list from the database
@@ -107,10 +109,12 @@ async function videoFunct(event) {
         'hard': { countdown: 3, round: 3 }
     };
 
+
     viewportWidth = window.innerWidth;
 
     // Removing sidebar and making top-sidebar visible if user is on mobile
     if (viewportWidth <= 450) {
+        mobileView = true;
         const sidebar = document.querySelector('.sidebar');
         const pagecontainer = document.querySelector('.page-container');
         if (sidebar) {
@@ -126,6 +130,7 @@ async function videoFunct(event) {
             startGame(key);
             chosenDifficultyCountdownNumber = value.countdown;
             chosenDifficultyRoundNumber = value.round;
+            try_count = chosenDifficultyRoundNumber
             chosenDifficulty = key;
             break;
         }
@@ -140,10 +145,15 @@ function listToFEN(pieceList) {
     // Create an 8x8 array filled with empty strings to represent the chess board
     const board = Array.from({ length: 8 }, () => Array(8).fill(""));
 
+    if (mobileView === true) {
+        pieceSize = 50;
+    } else {
+        pieceSize = 90;
+    }
     // Populate the board array based on the pieces in pieceList
     pieceList.forEach((piece) => {
-        const row = Math.floor(piece.top / 90);
-        const col = Math.floor(piece.left / 90);
+        const row = Math.floor(piece.top / pieceSize);
+        const col = Math.floor(piece.left / pieceSize);
         const pieceName =
             piece.name.charAt(0) === "w"
                 ? piece.name.charAt(1).toUpperCase()
@@ -241,6 +251,8 @@ function countdownEndPlacementStart() {
     document.querySelector(".btn.btn-secondary.flip").style.display = "block";
     document.querySelector(".btn.btn-success.submit").style.display = "block";
     document.querySelector(".btn.btn-danger.clear").style.display = "block";
+
+    document.querySelector(".p1.tries").innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
 }
 
 let gameOnFlag = false;
@@ -250,11 +262,14 @@ let errorCount = 0;
 function submitFunct() {
     const csrftoken = getCookie("csrftoken");
     const memoryBoard = document.querySelector(".duplicate_piece_container");
+    let gotCorrectRoundNumber = chosenDifficultyRoundNumber - try_count + 1;
+    try_count--;
     piecesByUser = Array.from(memoryBoard.children).map((child) => {
         return {
             name: child.alt,
             left: child.offsetLeft,
             top: child.offsetTop,
+            mobileView: mobileView
         };
     });
 
@@ -280,6 +295,7 @@ function submitFunct() {
                     },
                     body: JSON.stringify({
                         FENcode: randomFEN,
+                        gotCorrectRoundNumber: gotCorrectRoundNumber
                     }),
                 }).then((response) => response.json())
                   .then((data) => {
@@ -295,9 +311,6 @@ function submitFunct() {
                     displayErrorMessage(data.message, chosenDifficultyCountdownNumber + 1);
                     gameOnFlag = true;
                     gameIsNotOver();
-
-                // "EASY MODE" logic for infinite amount of tries
-                } else if (chosenDifficultyRoundNumber === -1) {
 
                 // Game finished, user couldn't get the correct position
                 } else {

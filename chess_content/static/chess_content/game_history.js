@@ -122,7 +122,7 @@ $(document).ready(function() {
         
         for (var i = 0; i < text.length; i++) {
             modifiedText += text[i];
-            if ((i + 1) % 20 === 0) {
+            if ((i + 1) % 25 === 0) {
                 modifiedText += '<br>';
             }
         }

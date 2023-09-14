@@ -16,33 +16,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Clear all pieces (Clear all button)
     document
-        .querySelector(".btn.btn-danger.clear")
+        .querySelector(".btn.clear")
         .addEventListener("click", clearFunct);
 
     // Submit your guesses (Submit button)
     document
-        .querySelector(".btn.btn-success.submit")
+        .querySelector(".btn.submit")
         .addEventListener("click", submitFunct);
 
     // FLip the board (Flip board button)
     document
-        .querySelector(".btn.btn-secondary.flip")
+        .querySelector(".btn.flip")
         .addEventListener("click", flipFunct);
 
-    // Start the game when difficulty is chosen
     document.querySelectorAll(".hover-play-video").forEach((video) => {
         video.addEventListener("click", videoFunct);
         video.addEventListener(
             "mouseenter",
             () => (video.style.cursor = "pointer")
         );
+        video.setAttribute('data-played', 'false');  // Initialize each video as not played
     });
 
     const videos = document.querySelectorAll(".hover-play-video");
-    
-    // Welcome page videos gonna be played when hovered over
+
     videos.forEach((video) => {
         let isMouseOver = false;
+
+        // Check if the video should play once automatically
+        if (video.getAttribute('data-played') === 'false') {
+            video.play();
+            video.setAttribute('data-played', 'true');
+        }
 
         video.addEventListener("mouseover", function () {
             isMouseOver = true;
@@ -248,9 +253,9 @@ function countdownEndPlacementStart() {
     document.querySelector(".black_chess_pieces").style.visibility = "visible";
 
     document.querySelector(".control_panel").style.visibility = "visible";
-    document.querySelector(".btn.btn-secondary.flip").style.display = "block";
-    document.querySelector(".btn.btn-success.submit").style.display = "block";
-    document.querySelector(".btn.btn-danger.clear").style.display = "block";
+    document.querySelector(".btn.flip").style.display = "block";
+    document.querySelector(".btn.submit").style.display = "block";
+    document.querySelector(".btn.clear").style.display = "block";
 
     document.querySelector(".p1.tries").innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
 }

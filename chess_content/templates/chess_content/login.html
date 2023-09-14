@@ -5,7 +5,7 @@
 
 {% block body %}
 
-<div class="create_list" style="margin-top:150px;">
+<div class="create_list">
     <h2 class="register_text">Login</h2>
     <form action="{% url 'login' %}" method="post">
         {% csrf_token %}
@@ -15,7 +15,7 @@
         <div class="form-group">
             <input class="form-control" type="password" name="password" placeholder="Password">
         </div>
-        <input class="btn btn-primary register" type="submit" value="Login">
+        <input class="btn register" type="submit" value="Login">
     </form>
     <span class="have_account_text">Don't have an account? <a class="a_link" href="{% url 'register' %}">Register here.</a></span>
 </div>

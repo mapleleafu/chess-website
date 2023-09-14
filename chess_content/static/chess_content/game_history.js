@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const boardFromFEN = fenToBoard(fenData);
         placePiecesFromFEN(boardFromFEN, pieceContainer);
     });
+    
     let newestFirst = true;  // Initialize the variable to true
 
     const toggleButton = document.getElementById('toggleOrder');

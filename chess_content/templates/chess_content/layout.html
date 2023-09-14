@@ -42,11 +42,11 @@
             <div class="sidebar">
                 <div class="sidebar-item one" id="sidebar-item1">
                     <img src="static/chess_content/assets/home_icon.png" alt="home">
-                    <a href="{% url 'home' %}" class="item-text">Home</a>
+                    <a href="{% url 'home' %}" class="item-text" id="item-text1">Home</a>
                 </div>            
                 <div class="sidebar-item" id="sidebar-item2">
                   <img src="static/chess_content/assets/memory_icon.png" alt="memory_rush">
-                  <a href="{% url 'memory_rush' %}" class="item-text">Memory Rush</a>
+                  <a href="{% url 'memory_rush' %}" class="item-text" id="item-text2">Memory Rush</a>
                 </div>
                 {% if user.is_authenticated %}
                 <div class="sidebar-item" id="sidebar-item3">
@@ -55,14 +55,14 @@
                 </div>
                 <div class="sidebar-item" id="sidebar-item4">
                   <img src="static/chess_content/assets/login_icon.png" alt="logout">
-                  <a href="{% url 'logout' %}" class="item-text">Log Out</a>
+                  <a href="{% url 'logout' %}" class="item-text" id="item-text4">Log Out</a>
                 </div>
                 {% else %}
                 <div class="sidebar-item" id="sidebar-item5">
                   <img src="static/chess_content/assets/login_icon.png" alt="login">
                   <div class="icon-text-wrapper">
-                      <a href="{% url 'login' %}" class="item-text">Login</a>
-                      <a href="{% url 'register' %}" class="item-text">Register</a>
+                      <a href="{% url 'login' %}" class="item-text" id="item-text5">Login</a>
+                      <a href="{% url 'register' %}" class="item-text" id="item-text6">Register</a>
                   </div>
               </div>
                 {% endif %}

@@ -1,13 +1,11 @@
 body {
-    background-color: #161512;
-    margin: 0;
-    padding: 0;
-    font-family: Arial, Helvetica, sans-serif;
-}
+    background-image: radial-gradient(#1d1b19 1px, #161512 1px);
+    background-size: 10px 10px;
+  }
 
 .sidebar {
     width: 60px;
-    background-color: #333;
+    background-color: #2e2e2e;
     position: fixed;
     overflow: hidden;
     white-space: nowrap;
@@ -16,6 +14,14 @@ body {
     z-index: 9999;
 }
   
+.item-text {
+    font-size: 17px;
+    display: none;
+    margin-left: 5px;
+    color: white;
+    text-align: center;
+}
+
 .sidebar-item {
     display: flex;
     align-items: center;
@@ -40,20 +46,22 @@ body {
     width: 70px;
     height: 70px;
 }
-  
-.item-text {
-    display: none;
-    margin-left: 10px;
-    color: wheat;
-    text-align: center;
+
+#item-text2 {
+    margin-left: 6px; 
 }
 
 #item-text3 {
-    margin-left: 4px; 
+    margin-left: 2px; 
+}
+
+#item-text4,
+#item-text5 {
+    margin-left: 7px; 
 }
 
 .item-text:hover {
-    color: rgb(247, 202, 118);
+    color: #b3f4ff;
 }
 
 .sidebar:hover {
@@ -65,11 +73,6 @@ body {
     text-decoration: none;
 }
 
-.main_header {
-    margin-top: 20px;
-    text-align: center;
-}
-
 button{
     margin-top: 8px;
     margin-bottom: 8px;
@@ -79,7 +82,49 @@ button{
 .btn.btn-danger.clear,
 .btn.btn-success.submit {
     display: none; /* Not displayed till play button is clicked */
+    text-transform: uppercase;
+    color: #fff;
+    box-shadow: 0 0 5px #eee;
+    border-radius: 10px;
+    background-size: 200% auto;
 }
+
+.btn.btn-success.submit {
+    padding: 10px 15px;
+    background-image: linear-gradient(to right, #1D976C 0%, #93F9B9  51%, #1D976C  100%);
+}
+
+.btn.btn-danger.clear {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+    font-family: inherit;
+    font-size: 100%;
+    line-height: inherit;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 5px 13px;
+    text-align: center;
+    background-image: linear-gradient(to right, #200122 0%, #6f0000 51%, #200122 100%);
+}
+
+.btn.btn-secondary.flip {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+    font-family: inherit;
+    font-size: 100%;
+    line-height: inherit;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 5px 10px;
+    text-align: center;
+    text-transform: uppercase;
+    background-image: linear-gradient(to right, #141E30 0%, #243B55 51%, #141E30 100%);
+}
+
 
 .black_chess_pieces,
 .white_chess_pieces{
@@ -111,26 +156,27 @@ button{
 
 .register_text,
 .have_account_text {
-    color: rgb(247, 202, 118);
+    color: #00d9ff;
 }
 
 .a_link {
-    color:rgb(233, 148, 22);
+    color:#b3f4ff;
 }
 
 .a_link:hover {
     text-decoration:none;
-    color: rgb(158, 102, 17);;
+    color: #7cadb6;
 }
 
 .btn.btn-primary.register {
-    background-color: rgb(233, 148, 22);
-    border-color: orange;
+    background-color: #b3f4ff;
+    color: #2a4044;
+    border-color: #9df0ff;
 }
 
 .btn.btn-primary.register:hover {
-    background-color:rgb(158, 100, 13);
-    border-color: rgb(109, 76, 15);
+    background-color:#7cadb6;
+    border-color: #5d838a;
 }
 
 @keyframes scaleUp {
@@ -302,7 +348,7 @@ button{
 }
 
 .main_header {
-    color: rgb(233, 148, 22);
+    color: #b3f4ff;
     text-align: center;
     font-weight: bold;
     margin-top: 50px;
@@ -311,7 +357,7 @@ button{
 .p1 {
     color: white;
     text-align: center;
-    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    font-size: larger;
 }
 
 .video_container {
@@ -407,6 +453,7 @@ button{
         margin-right: auto;
         justify-content: center;
         align-items: center;
+        margin-top: 10px;
     }
     .memory_board {
         width: 400px;
@@ -452,10 +499,7 @@ button{
         font-size:0.9em;
     }
     .sidebar:hover {
-        width: 135px;
-    }
-    .item-text {
-        margin-left: 8px;
+        width: 140px;
     }
     .main_header {
         margin-top: 5px;
@@ -474,6 +518,16 @@ button{
         height: 70px;
     }
     .countdown {
-        margin-top: -50px;
+        margin-top: -80px;
+    }
+    #sidebar-item2,
+    #sidebar-item3 {
+        white-space: wrap;
+    }
+    #item-text2 {
+        margin-left: 0px;
+    }
+    .p1.tries {
+        font-size: larger;
     }
 }

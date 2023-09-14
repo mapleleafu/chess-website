@@ -4,7 +4,10 @@
 {% block body %}
     <script src="{% static 'chess_content/game_history.js' %}" defer></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <h1 class="main_header">Played Games</h1>
+    <div class="header-container">
+        <h1 class="main_header">Played Games</h1>
+        <button id="toggleOrder" class="toggleButton">Oldest</button>
+    </div>
     <div class="board_and_pieces">
         <div class="profile_games">
             {% for item in fen_data %}

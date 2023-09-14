@@ -17,7 +17,7 @@ def home(request):
     return render(request, "chess_content/home.html")
 
 def game_history(request):
-    seen_games = PlayedGame.objects.filter(user=request.user).select_related('chess_game')
+    seen_games = PlayedGame.objects.filter(user=request.user).select_related('chess_game').order_by('-played_at')
 
     fen_data = [
         {

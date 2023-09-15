@@ -127,6 +127,15 @@ function fenToBoard(fen) {
     return board;
 }
 
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        console.log(`Copied ${text} to clipboard successfully!`);
+    }).catch(function() {
+        console.log("Unable to copy to clipboard!");
+    });
+}
+
 // Maximizing FEN text to 20 characters, and then it goes to a new line
 $(document).ready(function() {
     $(".fen_string").each(function() {
@@ -141,5 +150,18 @@ $(document).ready(function() {
         }
         
         $(this).html(modifiedText);
+    });
+
+    $(".copy").click(function() {
+        const text = $(this).parent().parent().attr('data-fen');
+        copyToClipboard(text);
+
+        $(this).find('.fa-clipboard').hide();
+        $(this).find('.fa-check').show();
+
+        setTimeout(() => {
+            $(this).find('.fa-check').hide();
+            $(this).find('.fa-clipboard').show();
+        }, 3000);
     });
 });

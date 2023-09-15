@@ -21,18 +21,24 @@
                     <div class="board_container">
                         <div class="piece_container"></div>
                     </div>
-                    <div class="game_info">
-                        <span class="fen_string">FEN: {{ item.fen_string }}</span> <br>
-                        {{ item.chosenDifficulty }} <br>
-                        {% if item.success == True %}
-                            ✅<br>
-                        {% else %}
-                            ❌<br>
-                        {% endif %}
+                    <div class="game_info_new {{ item.chosenDifficulty }}">
+                        <button class="copy">
+                            <i class="fas fa-clipboard fa-xs"></i>
+                            <i class="fas fa-check fa-xs"></i>
+                        </button>
+                        <div>
+                            {% if item.success == True %}
+                                ✅
+                            {% else %}
+                                ❌
+                            {% endif %}
+                        </div>
                         {% if item.gotCorrectRoundNumber %}
-                            Attempts to success: {{ item.gotCorrectRoundNumber }} <br>
+                            <div class="tries">
+                                {{ item.gotCorrectRoundNumber }} tries
+                            </div>
                         {% endif %}
-                        Played at: {{ item.played_at }} <br>
+                        <div title="{{ item.played_at|date:'l, F j, Y P' }}">{{ item.played_at|date:'d/m' }}</div>
                     </div>
                 </div>
             {% endfor %}

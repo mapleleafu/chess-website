@@ -467,6 +467,7 @@ input:-webkit-autofill:focus {
     margin: 20px;
     display: flex;
     flex-direction: column;  /* Stack the elements vertically */
+    width: 240px;
 }
 
 .board_container {
@@ -476,6 +477,73 @@ input:-webkit-autofill:focus {
 
 .game_info {
     margin-top: 10px;
+}
+
+.game_info_new {
+    margin: 0;
+    padding: 4px 28px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-evenly;
+    gap: 6px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    width: 100%;
+    height: fit-content;
+    position: relative;
+}
+
+.game_info_new div {
+    border-radius: 4px;
+    padding: 4px 6px;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.game_info_new .copy .fa-clipboard {
+    display: inline-block;
+}
+
+.game_info_new .copy .fa-check {
+    display: none;
+}
+
+.game_info_new .copy {
+    position:absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.8);
+    height: 24px;
+    width: 24px;
+    transition: background 0.3s ease;
+    color: rgba(0, 107, 125, 0.31);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    border-bottom-left-radius: 4px;
+}
+
+.game_info_new .copy:hover {
+    background: rgba(0, 0, 0, 1);
+}
+
+.game_info_new .copy:focus {
+    outline: 0;
+}
+
+.game_info_new.easy {
+    background: rgba(15,190,88,0.5);
+}
+
+.game_info_new.medium {
+    background: rgba(194,80,4,0.5)
+}
+
+.game_info_new.hard {
+    background: rgba(204,47,38,0.5);
 }
 
 .hover-play-video {

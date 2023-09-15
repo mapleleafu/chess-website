@@ -104,7 +104,8 @@ button{
 
 .btn.flip,
 .btn.clear,
-.btn.submit {
+.btn.submit,
+.btn.start {
     display: none; /* Not displayed till play button is clicked */
     text-transform: uppercase;
     color: #fff;
@@ -125,6 +126,16 @@ button{
 
 .btn.flip {
     padding: 5px 10px;
+}
+
+.btn.start {
+    padding: 8px 10px;
+}
+
+.btn.start:hover {
+    background-image: linear-gradient(to right, #080c13 0%, #111d2b 51%, #0b111b 100%);
+    box-shadow: 0 0 5px #516985;
+    transition: 0.2s;
 }
 
 .btn.submit:hover {
@@ -475,15 +486,6 @@ input:-webkit-autofill:focus {
     display: flex;
 }
 
-.game_info {
-    font-family: Arial, sans-serif;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-top: 10px;
-    text-align: center;
-}
-
 .fen_string {
     font-size: 14px;
     font-weight: bold;
@@ -510,12 +512,7 @@ input:-webkit-autofill:focus {
     color: #555;
 }
   
-.game_info span br{
-    margin-top: 10px; 
-    margin-bottom: 10px; 
-}
-
-.game_info_new {
+.game_info {
     margin: 0;
     padding: 4px 28px;
     background: rgba(0, 0, 0, 0.5);
@@ -530,31 +527,31 @@ input:-webkit-autofill:focus {
     position: relative;
 }
 
-.game_info_new div {
+.game_info div {
     border-radius: 4px;
     padding: 4px 6px;
     background: rgba(0, 0, 0, 0.5);
 }
 
-.game_info_new .copy .fa-clipboard {
+.game_info .copy .fa-clipboard {
     display: inline-block;
 }
 
-.game_info_new .copy .fa-check {
+.game_info .copy .fa-check {
     display: none;
 }
 
-.game_info_new .copy {
+.game_info .copy {
     position:absolute;
     top: 0;
     right: 0;
     margin: 0;
     padding: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: #000000cc;
     height: 24px;
     width: 24px;
     transition: background 0.3s ease;
-    color: rgba(0, 107, 125, 0.31);
+    color: rgba(2, 130, 153, 0.568);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -562,24 +559,39 @@ input:-webkit-autofill:focus {
     border-bottom-left-radius: 4px;
 }
 
-.game_info_new .copy:hover {
+.game_info .copy:hover {
     background: rgba(0, 0, 0, 1);
 }
 
-.game_info_new .copy:focus {
+.game_info .copy:focus {
     outline: 0;
 }
 
-.game_info_new.easy {
-    background: rgba(15,190,88,0.5);
+.game_info .copy:hover::after {
+    content: 'Copy the FEN';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 12px;
+    z-index: 9999;
 }
 
-.game_info_new.medium {
-    background: rgba(194,80,4,0.5)
+.game_info.easy {
+    background-image: linear-gradient(to left, #18eb7075 0%, #16d6666c 33%, #0c8f43b9 66%, #0b7537b9 100%);
 }
 
-.game_info_new.hard {
-    background: rgba(204,47,38,0.5);
+.game_info.medium {
+    background-image: linear-gradient(to left, #e768149d 0%, #c7570dc2 33%, #a84d10c2 66%, #8b410fc2 100%);
+}
+
+.game_info.hard {
+    background-image: linear-gradient(to left, #e7271d7e 0%, #d62c23ad 33%, #aa231cc0 66%, #9e231dc0 100%);
 }
 
 .hover-play-video {

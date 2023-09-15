@@ -21,7 +21,7 @@
                     <div class="board_container">
                         <div class="piece_container"></div>
                     </div>
-                    <div class="game_info_new {{ item.chosenDifficulty }}">
+                    <div class="game_info {{ item.chosenDifficulty }}">
                         <button class="copy">
                             <i class="fas fa-clipboard fa-xs"></i>
                             <i class="fas fa-check fa-xs"></i>
@@ -35,7 +35,11 @@
                         </div>
                         {% if item.gotCorrectRoundNumber %}
                             <div class="tries">
-                                {{ item.gotCorrectRoundNumber }} tries
+                                {% if item.gotCorrectRoundNumber == 1 %}
+                                    {{ item.gotCorrectRoundNumber }} try
+                                {% else %}
+                                    {{ item.gotCorrectRoundNumber }} tries
+                                {% endif %}
                             </div>
                         {% endif %}
                         <div title="{{ item.played_at|date:'l, F j, Y P' }}">{{ item.played_at|date:'d/m' }}</div>

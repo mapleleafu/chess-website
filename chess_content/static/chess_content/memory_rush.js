@@ -29,6 +29,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .querySelector(".btn.flip")
         .addEventListener("click", flipFunct);
 
+    // Starting Postiion (Starting Position button)
+    document
+        .querySelector(".btn.start")
+        .addEventListener("click", startPositionFunct);
+
     document.querySelectorAll(".hover-play-video").forEach((video) => {
         video.addEventListener("click", videoFunct);
         video.addEventListener(
@@ -249,6 +254,7 @@ function countdownEndPlacementStart() {
     document.querySelector(".btn.flip").style.display = "block";
     document.querySelector(".btn.submit").style.display = "block";
     document.querySelector(".btn.clear").style.display = "block";
+    document.querySelector(".btn.start").style.display = "block";
 
     document.querySelector(".p1.tries").innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
 }
@@ -421,10 +427,13 @@ function placePiecesUsingFen(board) {
     if (!board) {
         return;
     }
+
     const boardContainer = document.querySelector(".duplicate_piece_container");
 
-    // Declaring width and height depending on browser's width
-    viewportWidth = window.innerWidth;
+    // Declare viewport dimensions
+    const viewportWidth = window.innerWidth;
+    let squareWidth, squareHeight;
+
     if (viewportWidth <= 450) {
         squareWidth = 50;
         squareHeight = 50;        
@@ -433,7 +442,6 @@ function placePiecesUsingFen(board) {
         squareHeight = 90;
     }
 
-    // Mapping of FEN pieces to their image URLs
     const pieceToImage = {
         // White pieces
         K: "/static/chess_content/assets/pieces/wk.png",
@@ -455,6 +463,22 @@ function placePiecesUsingFen(board) {
     for (let y = 0; y < board.length; y++) {
         for (let x = 0; x < board[y].length; x++) {
             const piece = board[y][x];
+            const left = x * squareWidth;
+            const top = y * squareHeight;
+
+            // Check existing elements in the board
+            const existingChild = Array.from(boardContainer.children).find(child => {
+                const childStyle = child.style;
+                const childLeft = parseInt(childStyle.left, 10);
+                const childTop = parseInt(childStyle.top, 10);
+
+                return childLeft === left && childTop === top;
+            });
+
+            // Skip this iteration if an existing child is found at this position
+            if (existingChild) {
+                continue;
+            }
 
             if (piece) {
                 const duplicate = document.createElement("img");
@@ -463,8 +487,8 @@ function placePiecesUsingFen(board) {
                 duplicate.alt = filename;
                 Object.assign(duplicate.style, {
                     position: "absolute",
-                    left: `${x * squareWidth}px`,
-                    top: `${y * squareHeight}px`,
+                    left: `${left}px`,
+                    top: `${top}px`,
                     width: `${squareWidth}px`,
                     height: `${squareHeight}px`,
                     zIndex: "9997",
@@ -526,6 +550,11 @@ function clearFunct() {
     elementsToRemove.forEach((element) => {
         duplicateContainer.removeChild(element);
     });
+}
+
+function startPositionFunct() {
+    startingFEN = fenToBoard(`rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1`);
+    placePiecesUsingFen(startingFEN);
 }
 
 function flipFunct() {

@@ -22,15 +22,19 @@
                         <div class="piece_container"></div>
                     </div>
                     <div class="game_info">
-                        <span class="fen_string">FEN: {{ item.fen_string }}</span> <br>
-                        {{ item.chosenDifficulty }} <br>
-                        {% if item.success == True %}
-                            ✅<br>
-                        {% else %}
-                            ❌<br>
-                        {% endif %}
+                        <span class="fen_string">FEN: Click to Copy<!--{{ item.fen_string }}--></span> <br> 
+                        <span class="dif_and_success">{{ item.chosenDifficulty }}
+                            <span class="{{ item.success|yesno:'info_success, info_failure' }}">
+                                {% if item.success == True %}
+                                    ✅
+                                {% else %}
+                                    ❌
+                                {% endif %}
+                            </span>
+                        </span>
+                        <br>
                         {% if item.gotCorrectRoundNumber %}
-                            Attempts to success: {{ item.gotCorrectRoundNumber }} <br>
+                            <span class="attempts">Attempts to success: {{ item.gotCorrectRoundNumber }} </span><br>
                         {% endif %}
                         Played at: {{ item.played_at }} <br>
                     </div>

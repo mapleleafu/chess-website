@@ -72,14 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-let randomFEN;
-let boardFromFEN;
-let chosenDifficultyCountdownNumber;
-let chosenDifficulty;
-let chosenDifficultyRoundNumber;
-let viewportWidth;
-let mobileView = false;
-let try_count;
+let randomFEN, boardFromFEN, chosenDifficultyCountdownNumber, chosenDifficulty, chosenDifficultyRoundNumber, viewportWidth, mobileView = false, try_count;
 
 async function videoFunct(event) {
     // Getting the fen list from the database
@@ -98,7 +91,7 @@ async function videoFunct(event) {
         const fenList = data.fen_list;
         // If the user has seen all the FEN positions
         if (fenList.length === 0) {
-            // TODO: Add a logic here 
+            // TODO: Add logic here 
             window.location.href = '/profile';
         } else {
             randomFEN = fenList[Math.floor(Math.random() * fenList.length)];
@@ -260,9 +253,7 @@ function countdownEndPlacementStart() {
     document.querySelector(".p1.tries").innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
 }
 
-let gameOnFlag = false;
-let piecesByUser;
-let errorCount = 0;
+let gameOnFlag = false, piecesByUser, errorCount = 0;
 
 function submitFunct() {
     const csrftoken = getCookie("csrftoken");
@@ -756,8 +747,7 @@ function choosePiece(event) {
     }
 }
 
-let squareWidth;
-let squareHeight;
+let squareWidth, squareHeight;
 
 function placePiece(event) {
     if (!activePiece || activePiece.className == "trash animate-background")

@@ -23,7 +23,7 @@ def game_history(request):
         {
             'fen_string': game.chess_game.fen_string,
             'success': game.success,
-            'played_at': game.played_at.strftime("%Y-%m-%d %H:%M:%S"),
+            'played_at': game.played_at.strftime("%H:%M %d/%m/%Y"),
             'gotCorrectRoundNumber': game.gotCorrectRoundNumber,
             'chosenDifficulty': game.chosenDifficulty,
         }

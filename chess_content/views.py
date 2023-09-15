@@ -25,6 +25,7 @@ def game_history(request):
             'success': game.success,
             'played_at': game.played_at.strftime("%Y-%m-%d %H:%M:%S"),
             'gotCorrectRoundNumber': game.gotCorrectRoundNumber,
+            'chosenDifficulty': game.chosenDifficulty,
         }
         for game in seen_games
     ]
@@ -40,6 +41,7 @@ def record_success(request):
         data = json.loads(request.body.decode('utf-8'))
         FENcode = data.get('FENcode')
         gotCorrectRoundNumber = data.get('gotCorrectRoundNumber')
+        chosenDifficulty = data.get('chosenDifficulty')
         
         chess_game = ChessGame.objects.get(fen_string=FENcode)
         
@@ -47,7 +49,8 @@ def record_success(request):
             user=user,
             chess_game=chess_game,
             success=True,
-            gotCorrectRoundNumber=gotCorrectRoundNumber
+            gotCorrectRoundNumber=gotCorrectRoundNumber,
+            chosenDifficulty=chosenDifficulty
         )
         return JsonResponse({"status": "Passed"})
 
@@ -57,11 +60,16 @@ def record_fail(request):
         user = request.user
         data = json.loads(request.body.decode('utf-8'))
         FENcode = data.get('FENcode')
-        gotCorrectRoundNumber = data.get('gotCorrectRoundNumber')
+        chosenDifficulty = data.get('chosenDifficulty')
         
         chess_game = ChessGame.objects.get(fen_string=FENcode)
 
-        PlayedGame.objects.create(user=user, chess_game=chess_game, success=False)
+        PlayedGame.objects.create(
+            user=user, 
+            chess_game=chess_game, 
+            success=False,
+            chosenDifficulty=chosenDifficulty
+        )
         return JsonResponse({"status": "Failed"})
 
 @csrf_exempt

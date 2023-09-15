@@ -1,12 +1,18 @@
 {% extends "chess_content/layout.html" %}
 {% load static %}
 
+{% block title %} Game History {% endblock %}
+
 {% block body %}
     <script src="{% static 'chess_content/game_history.js' %}" defer></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <div class="header-container">
-        <h1 class="main_header">Played Games</h1>
-        <button id="toggleOrder" class="toggleButton">Oldest</button>
+        {% if fen_data %}
+            <h1 class="main_header">Played Games</h1>
+            <button id="toggleOrder" class="toggleButton">Oldest</button>
+        {% else %}
+            <h1 class="main_header">You have no games to display so far.</h1>
+        {% endif %}
     </div>
     <div class="board_and_pieces">
         <div class="profile_games">
@@ -17,7 +23,12 @@
                     </div>
                     <div class="game_info">
                         <span class="fen_string">FEN: {{ item.fen_string }}</span> <br>
-                        Success: {{ item.success }} <br>
+                        {{ item.chosenDifficulty }} <br>
+                        {% if item.success == True %}
+                            ✅<br>
+                        {% else %}
+                            ❌<br>
+                        {% endif %}
                         {% if item.gotCorrectRoundNumber %}
                             Attempts to success: {{ item.gotCorrectRoundNumber }} <br>
                         {% endif %}

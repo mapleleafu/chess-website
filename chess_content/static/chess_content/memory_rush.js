@@ -300,7 +300,8 @@ function submitFunct() {
                     },
                     body: JSON.stringify({
                         FENcode: randomFEN,
-                        gotCorrectRoundNumber: gotCorrectRoundNumber
+                        gotCorrectRoundNumber: gotCorrectRoundNumber,
+                        chosenDifficulty: chosenDifficulty
                     }),
                 }).then((response) => response.json())
                   .then((data) => {
@@ -328,6 +329,7 @@ function submitFunct() {
                         },
                         body: JSON.stringify({
                             FENcode: randomFEN,
+                            chosenDifficulty: chosenDifficulty
                         }),
                     }).then((response) => response.json())
                       .then((data) => {
@@ -683,6 +685,7 @@ function choosePiece(event) {
     } else {
         clickedPiece.classList.add("animate-background");
         clickedPiece.style.backgroundColor = "#507ea9";
+        clickedPiece.style.borderRadius = "10px";
     }
 
     // Store the reference to the current clicked piece for future use

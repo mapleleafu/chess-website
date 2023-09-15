@@ -40,6 +40,7 @@ class PlayedGame(models.Model):
     success = models.BooleanField(default=False)
     played_at = models.DateTimeField(auto_now_add=True)
     gotCorrectRoundNumber = models.IntegerField(null=True, blank=True)
+    chosenDifficulty = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return f"User: {self.user.username}, Game: {self.chess_game.fen_string}, Success: {self.success}"

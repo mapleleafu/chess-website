@@ -25,7 +25,7 @@ body::before {
 
 .sidebar {
     width: 60px;
-    background-image: linear-gradient(to right, #161512 60%, #161512d2 80%, #161512a8 100%);
+    background-image: linear-gradient(to right, #161512 50%, #161512d2 75%, #161512a8 100%);
     position: fixed;
     overflow: hidden;
     white-space: nowrap;
@@ -206,6 +206,12 @@ button{
     left: 50%;
     transform: translate(-50%, -100%);
 }
+.register_list {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -80%);
+}
 
 .form-control {
     color: white;
@@ -334,20 +340,29 @@ input:-webkit-autofill:focus {
     user-select: none;
     -webkit-user-drag: none;
     border-radius: 10px;
-    background-color: gray;
     display: flex;
     margin  : 20px 0; 
-}    
+}
+
+.black_chess_pieces .chess_pieces,
+.trash,
+.cursor {
+    filter: drop-shadow(0 0 1px white);
+}
 
 .black_original_pieces,
 .white_original_pieces {
     -webkit-user-drag: none;
     user-select: none;
+    border-color: white;
+    border-radius: 10px;
+    border: 4px solid;
 }
 
 .animate-background {
     transition: background-color 0.6s ease;
-
+    height: 100px;
+    border-radius: 10px;
 }
 
 .animate-background:hover {
@@ -495,9 +510,11 @@ input:-webkit-autofill:focus {
 .top-sidebar:hover {
     height: 110px; /* Expanded height */
 }
+
 .top-sidebar:hover .item-text {
     display: contents;
 }
+
 .top-sidebar .sidebar-item {
     display: flex;
     flex-direction: column;
@@ -505,7 +522,7 @@ input:-webkit-autofill:focus {
     align-items: center;      /* Centers children horizontally */
     margin-top: -10px;
     color: white;
-  }
+}
   
 /* Mobile view */
 @media only screen and (max-width: 450px) {
@@ -523,7 +540,7 @@ input:-webkit-autofill:focus {
         margin-right: auto;
         justify-content: center;
         align-items: center;
-        margin-top: 10px;
+        margin-top: 100px;
     }
     .memory_board {
         width: 400px;
@@ -552,7 +569,7 @@ input:-webkit-autofill:focus {
         height: 100vh; 
     }
     .chess_pieces {
-        width: 55.5px;
+        width: 54.3px;
         height: 55.5px;
         border: 0px solid;
     }
@@ -611,6 +628,12 @@ input:-webkit-autofill:focus {
         top: 50%;
         left: 50%;
         transform: translate(-35%, -80%);
+    }
+    .register_list {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-35%, -70%);
     }
     .btn.register {
         width: 100%;

@@ -105,7 +105,6 @@ def memory_rush(request):
 
         transformed_data_sorted = sorted(transformed_data, key=lambda x: (x['square'], x['name']))
 
-        # Logic to show which pieces are wrong or correct. 
         if Fen_position_sorted == transformed_data_sorted:
             request.session['message'] = 'Matched the Memory!'
             request.session['message_type'] = 'success'

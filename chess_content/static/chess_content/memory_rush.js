@@ -15,9 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Clear all pieces (Clear all button)
-    document
-        .querySelector(".btn.clear")
-        .addEventListener("click", clearFunct);
+    document.querySelector(".btn.clear").addEventListener("click", clearFunct);
 
     // Submit your guesses (Submit button)
     document
@@ -35,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "mouseenter",
             () => (video.style.cursor = "pointer")
         );
-        video.setAttribute('data-played', 'false');  // Initialize each video as not played
+        video.setAttribute("data-played", "false"); // Initialize each video as not played
     });
 
     const videos = document.querySelectorAll(".hover-play-video");
@@ -44,9 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
         let isMouseOver = false;
 
         // Check if the video should play once automatically
-        if (video.getAttribute('data-played') === 'false') {
+        if (video.getAttribute("data-played") === "false") {
             video.play();
-            video.setAttribute('data-played', 'true');
+            video.setAttribute("data-played", "true");
         }
 
         video.addEventListener("mouseover", function () {
@@ -61,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         video.addEventListener("ended", function () {
-            if (isMouseOver) {  
+            if (isMouseOver) {
                 this.currentTime = 0;
                 this.play();
             } else {
@@ -72,27 +70,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-let randomFEN, boardFromFEN, chosenDifficultyCountdownNumber, chosenDifficulty, chosenDifficultyRoundNumber, viewportWidth, mobileView = false, try_count;
+let randomFEN,
+    boardFromFEN,
+    chosenDifficultyCountdownNumber,
+    chosenDifficulty,
+    chosenDifficultyRoundNumber,
+    viewportWidth,
+    mobileView = false,
+    try_count;
 
 async function videoFunct(event) {
     // Getting the fen list from the database
     const response = await fetch("/get_fen_list/");
-    
+
     // If the user is not authenticated
     if (response.status === 401) {
-        window.location.href = '/login';
+        window.location.href = "/login";
         return;
     }
-
-
 
     const data = await response.json();
     if (data) {
         const fenList = data.fen_list;
         // If the user has seen all the FEN positions
         if (fenList.length === 0) {
-            // TODO: Add logic here 
-            window.location.href = '/profile';
+            displayErrorMessage("You have seen all the positions!", 60);
         } else {
             randomFEN = fenList[Math.floor(Math.random() * fenList.length)];
             // Convert the random FEN to a board and place the pieces
@@ -100,35 +102,33 @@ async function videoFunct(event) {
             placePiecesUsingFen(boardFromFEN);
         }
     }
-    
-    const difficulties = {
-        'easy': { countdown: 10, round: 10 },
-        'medium': { countdown: 5, round: 5 },
-        'hard': { countdown: 3, round: 3 }
-    };
 
+    const difficulties = {
+        easy: { countdown: 10, round: 10 },
+        medium: { countdown: 5, round: 5 },
+        hard: { countdown: 3, round: 3 },
+    };
 
     viewportWidth = window.innerWidth;
 
     // Removing sidebar and making top-sidebar visible if user is on mobile
     if (viewportWidth <= 450) {
         mobileView = true;
-        const sidebar = document.querySelector('.sidebar');
-        const pagecontainer = document.querySelector('.page-container');
+        const sidebar = document.querySelector(".sidebar");
+        const pagecontainer = document.querySelector(".page-container");
         if (sidebar) {
             pagecontainer.removeChild(sidebar);
         }
-         const topsidebar = document.querySelector('.top-sidebar');
-         topsidebar.style.visibility = 'visible';
+        const topsidebar = document.querySelector(".top-sidebar");
+        topsidebar.style.visibility = "visible";
     }
-    
 
     for (const [key, value] of Object.entries(difficulties)) {
         if (event.target.innerHTML.includes(key)) {
             startGame(key);
             chosenDifficultyCountdownNumber = value.countdown;
             chosenDifficultyRoundNumber = value.round;
-            try_count = chosenDifficultyRoundNumber
+            try_count = chosenDifficultyRoundNumber;
             chosenDifficulty = key;
             break;
         }
@@ -206,7 +206,7 @@ function startCountdown(difficulty) {
 
     const countdownElement = document.querySelector(".countdown");
     if (countdownElement.style.display != "block")
-        countdownElement.style.display = "block"; 
+        countdownElement.style.display = "block";
 
     let counter = difficulty;
 
@@ -250,10 +250,14 @@ function countdownEndPlacementStart() {
     document.querySelector(".btn.clear").style.display = "block";
     document.querySelector(".btn.start").style.display = "block";
 
-    document.querySelector(".p1.tries").innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
+    document.querySelector(
+        ".p1.tries"
+    ).innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
 }
 
-let gameOnFlag = false, piecesByUser, errorCount = 0;
+let gameOnFlag = false,
+    piecesByUser,
+    errorCount = 0;
 
 function submitFunct() {
     const csrftoken = getCookie("csrftoken");
@@ -265,7 +269,7 @@ function submitFunct() {
             name: child.alt,
             left: child.offsetLeft,
             top: child.offsetTop,
-            mobileView: mobileView
+            mobileView: mobileView,
         };
     });
 
@@ -292,24 +296,28 @@ function submitFunct() {
                     body: JSON.stringify({
                         FENcode: randomFEN,
                         gotCorrectRoundNumber: gotCorrectRoundNumber,
-                        chosenDifficulty: chosenDifficulty
+                        chosenDifficulty: chosenDifficulty,
                     }),
-                }).then((response) => response.json())
-                  .then((data) => {
-                      if(data.status === "Passed") {
-                          window.location.href = "/memory_rush";
-                          errorCount = 0;
-                      }
-                  });
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.status === "Passed") {
+                            window.location.href = "/memory_rush";
+                            errorCount = 0;
+                        }
+                    });
             } else if (data.status === "error") {
                 // Game not finished if errorCount is lower than the round number
                 errorCount++;
                 if (errorCount < chosenDifficultyRoundNumber) {
-                    displayErrorMessage(data.message, chosenDifficultyCountdownNumber + 1);
+                    displayErrorMessage(
+                        data.message,
+                        chosenDifficultyCountdownNumber + 1
+                    );
                     gameOnFlag = true;
                     gameIsNotOver();
 
-                // Game finished, user couldn't get the correct position
+                    // Game finished, user couldn't get the correct position
                 } else {
                     errorCount = 0;
                     fetch("/record_fail/", {
@@ -320,15 +328,16 @@ function submitFunct() {
                         },
                         body: JSON.stringify({
                             FENcode: randomFEN,
-                            chosenDifficulty: chosenDifficulty
+                            chosenDifficulty: chosenDifficulty,
                         }),
-                    }).then((response) => response.json())
-                      .then((data) => {
-                          if(data.status === "Failed") {
-                              window.location.href = "/memory_rush";
-                              errorCount = 0;
-                          }
-                      });
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if (data.status === "Failed") {
+                                window.location.href = "/memory_rush";
+                                errorCount = 0;
+                            }
+                        });
                 }
             }
         });
@@ -352,7 +361,10 @@ function gameIsNotOver() {
         previouslyClickedPiece.classList.remove("animate-background");
         previouslyClickedPiece.style.background = "";
         previouslyClickedPiece = null;
-    } else if ( previouslyClickedPiece && previouslyClickedPiece.alt === "trash") {
+    } else if (
+        previouslyClickedPiece &&
+        previouslyClickedPiece.alt === "trash"
+    ) {
         document
             .querySelectorAll(".trash.animate-background")
             .forEach((element) => {
@@ -430,7 +442,7 @@ function placePiecesUsingFen(board) {
 
     if (viewportWidth <= 450) {
         squareWidth = 50;
-        squareHeight = 50;        
+        squareHeight = 50;
     } else {
         squareWidth = 90;
         squareHeight = 90;
@@ -461,13 +473,15 @@ function placePiecesUsingFen(board) {
             const top = y * squareHeight;
 
             // Check existing elements in the board
-            const existingChild = Array.from(boardContainer.children).find(child => {
-                const childStyle = child.style;
-                const childLeft = parseInt(childStyle.left, 10);
-                const childTop = parseInt(childStyle.top, 10);
+            const existingChild = Array.from(boardContainer.children).find(
+                (child) => {
+                    const childStyle = child.style;
+                    const childLeft = parseInt(childStyle.left, 10);
+                    const childTop = parseInt(childStyle.top, 10);
 
-                return childLeft === left && childTop === top;
-            });
+                    return childLeft === left && childTop === top;
+                }
+            );
 
             // Skip this iteration if an existing child is found at this position
             if (existingChild) {
@@ -547,7 +561,9 @@ function clearFunct() {
 }
 
 function startPositionFunct() {
-    startingFEN = fenToBoard(`rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1`);
+    startingFEN = fenToBoard(
+        `rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1`
+    );
     placePiecesUsingFen(startingFEN);
 }
 
@@ -649,8 +665,8 @@ function cursorDisable() {
     }
 }
 
-let activePiece = null;
-let previouslyClickedPiece = null;
+let activePiece = null,
+    previouslyClickedPiece = null;
 
 function choosePiece(event) {
     // Get the clicked element
@@ -790,7 +806,7 @@ function placePiece(event) {
     // Mobile piece placement logic
     if (viewportWidth <= 450) {
         squareWidth = 50;
-        squareHeight = 50;        
+        squareHeight = 50;
     } else {
         squareWidth = activePiece.width;
         squareHeight = activePiece.height;

@@ -24,11 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .querySelector(".btn.submit")
         .addEventListener("click", submitFunct);
 
-    // FLip the board (Flip board button)
-    document
-        .querySelector(".btn.flip")
-        .addEventListener("click", flipFunct);
-
     // Starting Postiion (Starting Position button)
     document
         .querySelector(".btn.start")
@@ -251,7 +246,6 @@ function countdownEndPlacementStart() {
     document.querySelector(".black_chess_pieces").style.visibility = "visible";
 
     document.querySelector(".control_panel").style.visibility = "visible";
-    document.querySelector(".btn.flip").style.display = "block";
     document.querySelector(".btn.submit").style.display = "block";
     document.querySelector(".btn.clear").style.display = "block";
     document.querySelector(".btn.start").style.display = "block";
@@ -555,10 +549,6 @@ function clearFunct() {
 function startPositionFunct() {
     startingFEN = fenToBoard(`rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1`);
     placePiecesUsingFen(startingFEN);
-}
-
-function flipFunct() {
-    console.log("Flip Board button clicked");
 }
 
 function getCookie(name) {

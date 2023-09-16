@@ -14,7 +14,8 @@ from .models import User, ChessGame, PlayedGame
 
 
 def home(request):
-    return render(request, "chess_content/home.html")
+    # return redirect(request, "chess_content/memory_rush.html")
+    return HttpResponseRedirect(reverse("memory_rush"))
 
 def game_history(request):
     seen_games = PlayedGame.objects.filter(user=request.user).select_related('chess_game').order_by('-played_at')

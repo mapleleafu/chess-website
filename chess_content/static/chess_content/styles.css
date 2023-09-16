@@ -102,7 +102,6 @@ button{
     box-shadow: none;
 }
 
-.btn.flip,
 .btn.clear,
 .btn.submit,
 .btn.start {
@@ -117,19 +116,15 @@ button{
 }
 
 .btn.submit {
-    padding: 10px 15px;
+    padding: 21px 22px;
 }
 
 .btn.clear {
-    padding: 5px 13px;
-}
-
-.btn.flip {
-    padding: 5px 10px;
+    padding: 10px 13px;
 }
 
 .btn.start {
-    padding: 8px 10px;
+    padding: 10px 10px;
 }
 
 .btn.start:hover {
@@ -149,13 +144,6 @@ button{
     box-shadow: 0 0 5px #8d5353;
     transition: 0.2s;
 }
-
-.btn.flip:hover {
-    background-image: linear-gradient(to right, #080c13 0%, #111d2b 51%, #0b111b 100%);
-    box-shadow: 0 0 5px #516985;
-    transition: 0.2s;
-}
-
 
 .black_chess_pieces,
 .white_chess_pieces{
@@ -486,32 +474,6 @@ input:-webkit-autofill:focus {
     display: flex;
 }
 
-.fen_string {
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.info_success {
-    background-color: green;
-    color: white;
-    padding: 4px;
-    margin-left: 5px;
-    border-radius: 4px;
-}
-
-.info_failure {
-    background-color: red;
-    color: white;
-    padding: 4px;
-    margin-left: 5px;
-    border-radius: 4px;
-}
-
-.attempts {
-    font-size: 12px;
-    color: #555;
-}
-  
 .game_info {
     margin: 0;
     padding: 4px 28px;
@@ -580,6 +542,35 @@ input:-webkit-autofill:focus {
     white-space: nowrap;
     font-size: 12px;
     z-index: 9999;
+}
+
+.game_info:hover::after {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #000000cc;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 12px;
+    z-index: 9999;
+}
+
+.game_info.easy:hover::after {
+    content: 'Easy mode';
+    background-image: linear-gradient(to left, #18eb7025 0%, #16d6661e 33%, #0c8f4346 66%, #0b753738 100%);
+}
+
+.game_info.medium:hover::after {
+    content: 'Medium mode';
+    background-image: linear-gradient(to left, #e768143b 0%, #c7570d36 33%, #a84d1038 66%, #8b410f46 100%);
+}
+
+.game_info.hard:hover::after {
+    content: 'Hard mode';
+    background-image: linear-gradient(to left, #e7271d34 0%, #d62c233a 33%, #aa231c2f 66%, #9e241d46 100%);
 }
 
 .game_info.easy {

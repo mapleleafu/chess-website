@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'chess_content.middleware.AutoFailGameMiddleware',
 ]
 
 ROOT_URLCONF = 'chess_website.urls'

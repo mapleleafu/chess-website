@@ -9,6 +9,7 @@ from django.contrib.auth.password_validation import validate_password
 from email_validator import validate_email, EmailNotValidError
 from django.core.exceptions import ValidationError
 import json
+import random
 
 from .models import User, ChessGame, PlayedGame
 
@@ -53,6 +54,8 @@ def record_success(request):
             gotCorrectRoundNumber=gotCorrectRoundNumber,
             chosenDifficulty=chosenDifficulty
         )
+        request.session['game_in_progress'] = False
+        del request.session['game_fen']
         return JsonResponse({"status": "Passed"})
 
 @csrf_exempt
@@ -71,6 +74,8 @@ def record_fail(request):
             success=False,
             chosenDifficulty=chosenDifficulty
         )
+        request.session['game_in_progress'] = False
+        del request.session['game_fen']
         return JsonResponse({"status": "Failed"})
 
 @csrf_exempt
@@ -91,6 +96,7 @@ def memory_rush(request):
         data = json.loads(request.body.decode('utf-8'))
         pieces_by_user = data['piecesByUser']
         Fen_Position = data['boardFromFEN']
+        chosenDifficulty = data['chosenDifficulty']
         Fen_position_sorted = sorted(transform_board_to_square_data(Fen_Position), key=lambda x: (x['square'], x['name']))
     
         transformed_data = []
@@ -104,14 +110,21 @@ def memory_rush(request):
             transformed_data.append({'name': piece_name, 'square': square})
 
         transformed_data_sorted = sorted(transformed_data, key=lambda x: (x['square'], x['name']))
-
+    
+        # Session variables to register fail if user leaves the page after starting the game
+        random_fen = request.session.get('temp_random_fen')
+        request.session['game_fen'] = random_fen
+        request.session['chosenDifficulty'] = chosenDifficulty
+        request.session['game_in_progress'] = True
+        del request.session['temp_random_fen']
+        
         if Fen_position_sorted == transformed_data_sorted:
             request.session['message'] = 'Matched the Memory!'
             request.session['message_type'] = 'success'
             return JsonResponse({'status': 'success'})
 
         else:
-            # Printing missing pieces, delete later
+            # Printing missing pieces #TODO: Delete later
             compare_piece_sets(Fen_position_sorted, transformed_data_sorted)
             request.session['message'] = "Couldn't Match the Memory"
             request.session['message_type'] = 'error'
@@ -151,7 +164,10 @@ def get_fen_list(request):
     unseen_chessgames = ChessGame.objects.exclude(id__in=seen_game_ids)
   
     fen_list = [game.fen_string for game in unseen_chessgames]
-    return JsonResponse({'fen_list': fen_list})
+    random_fen = random.choice(fen_list) if fen_list else None
+    request.session['temp_random_fen'] = random_fen
+    return JsonResponse({'random_fen': random_fen})
+
 
 def transform_board_to_square_data(boardFromFen):
     square_data = []

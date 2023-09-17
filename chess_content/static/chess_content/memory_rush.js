@@ -91,12 +91,11 @@ async function videoFunct(event) {
 
     const data = await response.json();
     if (data) {
-        const fenList = data.fen_list;
+        randomFEN = data.random_fen;
         // If the user has seen all the FEN positions
-        if (fenList.length === 0) {
+        if (!randomFEN) {
             displayErrorMessage("You have seen all the positions!", 60);
         } else {
-            randomFEN = fenList[Math.floor(Math.random() * fenList.length)];
             // Convert the random FEN to a board and place the pieces
             boardFromFEN = fenToBoard(randomFEN);
             placePiecesUsingFen(boardFromFEN);
@@ -282,6 +281,7 @@ function submitFunct() {
         body: JSON.stringify({
             piecesByUser: piecesByUser,
             boardFromFEN: boardFromFEN,
+            chosenDifficulty: chosenDifficulty
         }),
     })
         .then((response) => response.json())

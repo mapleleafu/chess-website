@@ -248,10 +248,34 @@ function countdownEndPlacementStart() {
     document.querySelector(".btn.submit").style.display = "block";
     document.querySelector(".btn.clear").style.display = "block";
     document.querySelector(".btn.start").style.display = "block";
-
     document.querySelector(
         ".p1.tries"
     ).innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
+
+    // Making sure that startPositionFunct works properly by putting down a piece once
+    if (try_count === chosenDifficultyRoundNumber) {
+        image = document.querySelector('img[src="/static/chess_content/assets/pieces/wn.png"]');
+        image.click()
+        const boardRect = document
+            .querySelector(".memory_board")
+            .getBoundingClientRect();
+    
+        const { left: boardX, top: boardY } = boardRect;
+        const memoryBoard = document.querySelector('.memory_board');
+        const event = new MouseEvent('click', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true,
+        'clientX': boardX + boardX/2,
+        'clientY': boardY + boardY/2
+        });
+        memoryBoard.dispatchEvent(event);
+        activePiece.remove();
+        activePiece = null;
+        clearFunct();
+        image.classList.remove("animate-background");
+        image.style.backgroundColor = "";
+    }
 }
 
 let gameOnFlag = false,
@@ -560,7 +584,10 @@ function clearFunct() {
     });
 }
 
+let startPositionTriggered = false;
+
 function startPositionFunct() {
+    startPositionTriggered = true;
     startingFEN = fenToBoard(
         `rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1`
     );
@@ -787,7 +814,7 @@ let squareWidth, squareHeight;
 function placePiece(event) {
     if (!activePiece || activePiece.className == "trash animate-background")
         return;
-
+    
     const boardRect = document
         .querySelector(".memory_board")
         .getBoundingClientRect();
@@ -859,7 +886,6 @@ function placePiece(event) {
 
         duplicateContainer.appendChild(duplicate);
     }
-
     // Logic for a piece selected by cursor to not duplicate after dragging
     if (
         activePiece &&

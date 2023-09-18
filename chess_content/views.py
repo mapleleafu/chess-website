@@ -11,6 +11,8 @@ from django.core.exceptions import ValidationError
 import json
 import random
 
+import sys
+
 from .models import User, ChessGame, PlayedGame
 
 
@@ -44,7 +46,6 @@ def record_success(request):
         FENcode = data.get('FENcode')
         gotCorrectRoundNumber = data.get('gotCorrectRoundNumber')
         chosenDifficulty = data.get('chosenDifficulty')
-        
         chess_game = ChessGame.objects.get(fen_string=FENcode)
         
         PlayedGame.objects.create(
@@ -114,9 +115,11 @@ def memory_rush(request):
         # Session variables to register fail if user leaves the page after starting the game
         random_fen = request.session.get('temp_random_fen')
         request.session['game_fen'] = random_fen
+
         request.session['chosenDifficulty'] = chosenDifficulty
         request.session['game_in_progress'] = True
-        del request.session['temp_random_fen']
+        if 'temp_random_fen' in request.session:
+            del request.session['temp_random_fen']
         
         if Fen_position_sorted == transformed_data_sorted:
             request.session['message'] = 'Matched the Memory!'

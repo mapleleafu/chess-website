@@ -75,8 +75,6 @@ def record_fail(request):
             success=False,
             chosenDifficulty=chosenDifficulty
         )
-        request.session['game_in_progress'] = False
-        del request.session['game_fen']
         return JsonResponse({"status": "Failed"})
 
 @csrf_exempt
@@ -93,13 +91,79 @@ def memory_rush(request):
     if message_type:
         del request.session['message_type']
 
+    return render(request, 'chess_content/memory_rush.html', 
+                  {'black_piece_filenames': black_piece_filenames,
+                   'white_piece_filenames': white_piece_filenames,
+                   'video_names': video_names,
+                   'message': message,
+                   'message_type': message_type 
+                   })
+
+@csrf_exempt
+def post_start_game(request):
     if request.method == 'POST':
+        if not request.user.is_authenticated:
+            messages.info(request, "You have to log in to play.")
+            return JsonResponse({'status': 'unauthenticated'}, status=401)
+        
+        user = request.user
+
+        # Check if the user has any games with game_is_on=True
+        ongoing_games = PlayedGame.objects.filter(user=user, game_is_on=True)
+
+        # Variables to hold game info
+        chosenDifficulty = None
+        random_FEN = None
+
+        # If no ongoing games exist, proceed with creating a new game.
+        if not ongoing_games.exists():
+            data = json.loads(request.body.decode('utf-8'))
+            chosenDifficulty = data['chosenDifficulty']
+
+            # Get random unseen ChessGame's FEN string for the user
+            fen_list = [game.fen_string for game in ChessGame.objects.exclude(
+                id__in=PlayedGame.objects.filter(user=request.user).values_list('chess_game_id', flat=True)
+            )]
+            random_FEN = random.choice(fen_list) if fen_list else None
+            chess_game = ChessGame.objects.get(fen_string=random_FEN)
+
+            PlayedGame.objects.create(
+                user=user, 
+                chess_game=chess_game, 
+                success=False,
+                game_is_on=True,
+                error_count=0,
+                chosenDifficulty=chosenDifficulty,
+                fen_str=random_FEN
+            )
+        else:
+            # Retrieve chosenDifficulty and fen_str from the ongoing game
+            ongoing_game = ongoing_games.first()  
+            chosenDifficulty = ongoing_game.chosenDifficulty
+            random_FEN = ongoing_game.fen_str
+
+        difficulties = {
+            'easy': {'countdown': 10, 'round': 10},
+            'medium': {'countdown': 5, 'round': 5},
+            'hard': {'countdown': 3, 'round': 3},
+        }
+
+        countdown = difficulties.get(chosenDifficulty, {}).get('countdown', 'unknown')
+        round_number = difficulties.get(chosenDifficulty, {}).get('round', 'unknown')
+
+        return JsonResponse({
+            'countdown': countdown,
+            'round': round_number,
+            'random_FEN': random_FEN
+        })
+
+def put_submit_game(request):
+    if request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
         pieces_by_user = data['piecesByUser']
-        Fen_Position = data['boardFromFEN']
-        chosenDifficulty = data['chosenDifficulty']
-        Fen_position_sorted = sorted(transform_board_to_square_data(Fen_Position), key=lambda x: (x['square'], x['name']))
-    
+        played_game = PlayedGame.objects.filter(user=request.user).latest('played_at')
+        fen_str = played_game.fen_str
+
         transformed_data = []
 
         for piece_info in pieces_by_user:
@@ -110,95 +174,63 @@ def memory_rush(request):
             square = position_to_square(left, top, mobileView)
             transformed_data.append({'name': piece_name, 'square': square})
 
+        fen_position_sorted = fen_to_board(fen_str)
         transformed_data_sorted = sorted(transformed_data, key=lambda x: (x['square'], x['name']))
-    
-        # Session variables to register fail if user leaves the page after starting the game
-        random_fen = request.session.get('temp_random_fen')
-        request.session['game_fen'] = random_fen
-
-        request.session['chosenDifficulty'] = chosenDifficulty
-        request.session['game_in_progress'] = True
-        if 'temp_random_fen' in request.session:
-            del request.session['temp_random_fen']
         
-        if Fen_position_sorted == transformed_data_sorted:
-            request.session['message'] = 'Matched the Memory!'
-            request.session['message_type'] = 'success'
-            return JsonResponse({'status': 'success'})
+        # Sort fen_position_sorted before comparison
+        fen_position_sorted = sorted(fen_position_sorted, key=lambda x: (x['square'], x['name']))
+   
+        if fen_position_sorted == transformed_data_sorted:
 
+            return HttpResponseRedirect(reverse("memory_rush"))
         else:
-            # Printing missing pieces #TODO: Delete later
-            compare_piece_sets(Fen_position_sorted, transformed_data_sorted)
-            request.session['message'] = "Couldn't Match the Memory"
-            request.session['message_type'] = 'error'
-            return JsonResponse({'message': 'Pieces Not Correct', 'status': 'error'})
+            return HttpResponse(status=400)
 
-    return render(request, 'chess_content/memory_rush.html', 
-                  {'black_piece_filenames': black_piece_filenames,
-                   'white_piece_filenames': white_piece_filenames,
-                   'video_names': video_names,
-                   'message': message,
-                   'message_type': message_type 
-                   })
-
-#TODO: Delete later
-def compare_piece_sets(Fen_position_sorted, transformed_data_sorted):
-    test_set = set(tuple(d.items()) for d in Fen_position_sorted)
-    transformed_data_set = set(tuple(d.items()) for d in transformed_data_sorted)
-
-    added_pieces = transformed_data_set - test_set
-    removed_pieces = test_set - transformed_data_set
-
-    if added_pieces:
-        print("NOT Needed pieces:", [dict(t) for t in added_pieces])
-    if removed_pieces:
-        print("Needed pieces:", [dict(t) for t in removed_pieces])
-
-# Get FEN lists from the database
-def get_fen_list(request):
-    if not request.user.is_authenticated:
-        messages.info(request, "You have to log in to play.")
-        return JsonResponse({'status': 'unauthenticated'}, status=401)
-
-    # Get IDs of ChessGame instances already seen by the user
-    seen_game_ids = PlayedGame.objects.filter(user=request.user).values_list('chess_game_id', flat=True)
-  
-    # Exclude seen ChessGames
-    unseen_chessgames = ChessGame.objects.exclude(id__in=seen_game_ids)
-  
-    fen_list = [game.fen_string for game in unseen_chessgames]
-    random_fen = random.choice(fen_list) if fen_list else None
-    request.session['temp_random_fen'] = random_fen
-    return JsonResponse({'random_fen': random_fen})
-
-
-def transform_board_to_square_data(boardFromFen):
-    square_data = []
-    piece_to_image = {
-        'K': 'wk.png',
-        'Q': 'wq.png',
-        'R': 'wr.png',
-        'N': 'wn.png',
-        'B': 'wb.png',
-        'P': 'wp.png',
-        'k': 'bk.png',
-        'q': 'bq.png',
-        'r': 'br.png',
-        'n': 'bn.png',
-        'b': 'bb.png',
-        'p': 'bp.png'
-    }
+def fen_to_board(fen):
+    board_str, to_move, castling, en_passant, halfmove, fullmove = fen.split(' ')
     
-    for row_index, row in enumerate(reversed(boardFromFen)):  # Reverse because 1st row in FEN is 8th row in real board
-        for col_index, piece in enumerate(row):
-            if piece:  # Skip None (empty squares)
-                square = chr(97 + col_index) + str(row_index + 1) 
-                square_data.append({
-                    'name': piece_to_image[piece],
-                    'square': square
-                })
-
-    return square_data
+    rows = board_str.split('/')
+    board = []
+    row_labels = list(range(8, 0, -1))
+    col_labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    
+    for row_index, row in enumerate(rows):
+        col_index = 0
+        for char in row:
+            if char.isdigit():
+                col_index += int(char)
+            else:
+                square = col_labels[col_index] + str(row_labels[row_index])
+                piece = ""
+                if char == 'r':
+                    piece = "br.png"
+                elif char == 'n':
+                    piece = "bn.png"
+                elif char == 'b':
+                    piece = "bb.png"
+                elif char == 'q':
+                    piece = "bq.png"
+                elif char == 'k':
+                    piece = "bk.png"
+                elif char == 'p':
+                    piece = "bp.png"
+                elif char == 'R':
+                    piece = "wr.png"
+                elif char == 'N':
+                    piece = "wn.png"
+                elif char == 'B':
+                    piece = "wb.png"
+                elif char == 'Q':
+                    piece = "wq.png"
+                elif char == 'K':
+                    piece = "wk.png"
+                elif char == 'P':
+                    piece = "wp.png"
+                
+                board.append({'name': piece, 'square': square})
+                col_index += 1
+                
+    return board
 
 def position_to_square(left, top, mobileView):
     if (mobileView == True):

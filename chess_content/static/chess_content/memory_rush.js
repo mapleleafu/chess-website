@@ -80,33 +80,43 @@ let randomFEN,
     try_count;
 
 async function videoFunct(event) {
-    // Getting the fen list from the database
-    const response = await fetch("/get_fen_list/");
+    const csrftoken = getCookie("csrftoken");
+    const videoElement = event.currentTarget;
+    const src = videoElement.querySelector('source').src;
+    const videoName = src.split('/').pop().split('.')[0]; // Extract the video name without extension
 
-    // If the user is not authenticated
+    // Determine the difficulty level based on the video name
+    const difficulties = ["easy", "medium", "hard"];
+    chosenDifficulty = difficulties.find(diff => videoName.includes(diff));
+    
+    const response = await fetch("/post_start_game", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken,
+        },
+        body: JSON.stringify({
+            chosenDifficulty: chosenDifficulty
+        }),
+    });
+    
+    // Check for unauthorized status
     if (response.status === 401) {
         window.location.href = "/login";
-        return;
+        return;  // Early return
     }
-
+    
     const data = await response.json();
     if (data) {
-        randomFEN = data.random_fen;
-        // If the user has seen all the FEN positions
-        if (!randomFEN) {
-            displayErrorMessage("You have seen all the positions!", 60);
-        } else {
-            // Convert the random FEN to a board and place the pieces
-            boardFromFEN = fenToBoard(randomFEN);
-            placePiecesUsingFen(boardFromFEN);
-        }
+        chosenDifficultyCountdownNumber = data.countdown;
+        chosenDifficultyRoundNumber = data.round;
+        randomFEN = data.random_FEN;
     }
-
-    const difficulties = {
-        easy: { countdown: 10, round: 10 },
-        medium: { countdown: 5, round: 5 },
-        hard: { countdown: 3, round: 3 },
-    };
+    console.log(chosenDifficultyCountdownNumber);
+    // Convert the random FEN to a board and place the pieces
+    boardFromFEN = fenToBoard(randomFEN);
+    placePiecesUsingFen(boardFromFEN);
+    try_count = chosenDifficultyRoundNumber;
 
     viewportWidth = window.innerWidth;
 
@@ -121,17 +131,7 @@ async function videoFunct(event) {
         const topsidebar = document.querySelector(".top-sidebar");
         topsidebar.style.visibility = "visible";
     }
-
-    for (const [key, value] of Object.entries(difficulties)) {
-        if (event.target.innerHTML.includes(key)) {
-            startGame(key);
-            chosenDifficultyCountdownNumber = value.countdown;
-            chosenDifficultyRoundNumber = value.round;
-            try_count = chosenDifficultyRoundNumber;
-            chosenDifficulty = key;
-            break;
-        }
-    }
+    startGame(chosenDifficultyCountdownNumber);
 }
 
 function listToFEN(pieceList) {
@@ -184,7 +184,7 @@ function listToFEN(pieceList) {
     return fen;
 }
 
-function startGame(difficulty) {
+function startGame(chosenDifficultyCountdownNumber) {
     // Removing the welcome page
     var element = document.querySelector(".welcome_page");
     element.parentNode.removeChild(element);
@@ -195,19 +195,15 @@ function startGame(difficulty) {
     document.querySelector(".main_wrapper").style.display = "flex";
 
     // Start the countdown
-    startCountdown(difficulty);
+    startCountdown(chosenDifficultyCountdownNumber);
 }
 
-function startCountdown(difficulty) {
-    if (difficulty === "easy") difficulty = 10;
-    else if (difficulty === "medium") difficulty = 5;
-    else if (difficulty === "hard") difficulty = 3;
-
+function startCountdown(chosenDifficultyCountdownNumber) {
     const countdownElement = document.querySelector(".countdown");
     if (countdownElement.style.display != "block")
         countdownElement.style.display = "block";
 
-    let counter = difficulty;
+    let counter = chosenDifficultyCountdownNumber;
 
     const interval = setInterval(() => {
         countdownElement.textContent = counter;
@@ -285,7 +281,6 @@ let gameOnFlag = false,
 function submitFunct() {
     const csrftoken = getCookie("csrftoken");
     const memoryBoard = document.querySelector(".duplicate_piece_container");
-    let gotCorrectRoundNumber = chosenDifficultyRoundNumber - try_count + 1;
     try_count--;
     piecesByUser = Array.from(memoryBoard.children).map((child) => {
         return {
@@ -296,75 +291,30 @@ function submitFunct() {
         };
     });
 
-    fetch("/memory_rush", {
-        method: "POST",
+    fetch("/put_submit_game", {
+        method: "PUT",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": csrftoken,
         },
         body: JSON.stringify({
             piecesByUser: piecesByUser,
-            boardFromFEN: boardFromFEN,
-            chosenDifficulty: chosenDifficulty
         }),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.status === "success") {
-                fetch("/record_success/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrftoken,
-                    },
-                    body: JSON.stringify({
-                        FENcode: randomFEN,
-                        gotCorrectRoundNumber: gotCorrectRoundNumber,
-                        chosenDifficulty: chosenDifficulty,
-                    }),
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.status === "Passed") {
-                            window.location.href = "/memory_rush";
-                            errorCount = 0;
-                        }
-                    });
-            } else if (data.status === "error") {
-                // Game not finished if errorCount is lower than the round number
-                errorCount++;
-                if (errorCount < chosenDifficultyRoundNumber) {
-                    displayErrorMessage(
-                        data.message,
-                        chosenDifficultyCountdownNumber + 1
-                    );
-                    gameOnFlag = true;
-                    gameIsNotOver();
-
-                    // Game finished, user couldn't get the correct position
-                } else {
-                    errorCount = 0;
-                    fetch("/record_fail/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": csrftoken,
-                        },
-                        body: JSON.stringify({
-                            FENcode: randomFEN,
-                            chosenDifficulty: chosenDifficulty,
-                        }),
-                    })
-                        .then((response) => response.json())
-                        .then((data) => {
-                            if (data.status === "Failed") {
-                                window.location.href = "/memory_rush";
-                                errorCount = 0;
-                            }
-                        });
-                }
-            }
-        });
+    }).then(response => {
+        if (response.status === 200) {  // If server confirms success
+            localStorage.setItem('successMessage', 'Matched the memory!');
+            location.reload();
+        }
+        else if (response.status === 400) {
+            const errorInfo = {
+                message: 'Pieces Not Correct',
+                countdownNumber: chosenDifficultyCountdownNumber
+            };
+            localStorage.setItem('errorInfo', JSON.stringify(errorInfo));
+            gameOnFlag = true;
+            gameIsNotOver();
+        }
+    });
 }
 
 function gameIsNotOver() {
@@ -408,50 +358,68 @@ function gameIsNotOver() {
     startCountdown(chosenDifficultyCountdownNumber);
 }
 
-let errorMessageSecond = 0;
+function showMessageOnLoad() {
+    const errorInfoStr = localStorage.getItem('errorInfo');
+    let errorMessage = null;
+    let errorMessageSecond = null;
 
-function displayErrorMessage(message, errorMessageSecond) {
-    // Find the existing message container
-    const messagesDiv = document.querySelector(".message_container");
-    messagesDiv.classList.add("messages");
-    // Clear existing messages if any
-    messagesDiv.innerHTML = "";
+    if (errorInfoStr) {
+        const errorInfo = JSON.parse(errorInfoStr);
+        errorMessage = errorInfo.message;
+        errorMessageSecond = errorInfo.countdownNumber;
+    } else {
+        errorMessage = localStorage.getItem('errorMessage');
+    }
 
-    // Create a new list item for the message
-    const messageLi = document.createElement("li");
-    messageLi.className = "error";
-    messageLi.textContent = message;
+    const successMessage = localStorage.getItem('successMessage');
 
-    // Append the new list item to the message container
-    messagesDiv.appendChild(messageLi);
+    if (errorMessage) {
+        displayErrorMessage(errorMessage, errorMessageSecond);
+        localStorage.removeItem('errorMessage');
+        localStorage.removeItem('errorInfo');
+    }
+    
+    if (successMessage) {
+        displaySuccessMessage(); 
+        localStorage.removeItem('successMessage');
+    }
+}
 
-    // Make the message container visible
-    messagesDiv.style.display = "flex";
-
-    // Clear the message div after 3 seconds
-    setTimeout(() => {
+function displayErrorMessage(errorMessage, errorMessageSecond) {
+    if (errorMessage) {
+        const messagesDiv = document.querySelector(".message_container");
+        messagesDiv.classList.add("messages");
         messagesDiv.innerHTML = "";
-    }, errorMessageSecond * 1000);
+        const messageLi = document.createElement("li");
+        messageLi.className = "error";
+        messageLi.textContent = errorMessage;
+        messagesDiv.appendChild(messageLi);
+        messagesDiv.style.display = "flex";
+
+        setTimeout(() => {
+            messagesDiv.innerHTML = "";
+        }, errorMessageSecond * 1000);
+    }
 }
 
-function displaySuccessMessage(message) {
-    // Find the existing message container
-    const messagesDiv = document.querySelector(".message_container");
-    messagesDiv.classList.add("messages");
-    // Clear existing messages if any
-    messagesDiv.innerHTML = "";
 
-    // Create a new list item for the message
-    const messageLi = document.createElement("li");
-    messageLi.className = "success";
-    messageLi.textContent = message;
-
-    // Append the new list item to the message container
-    messagesDiv.appendChild(messageLi);
-
-    // Make the message container visible
-    messagesDiv.style.display = "flex";
+function displaySuccessMessage() {
+    const message = localStorage.getItem('successMessage');
+    if (message) {
+        const messagesDiv = document.querySelector(".message_container");
+        messagesDiv.classList.add("messages");
+        messagesDiv.innerHTML = "";
+        const messageLi = document.createElement("li");
+        messageLi.className = "success";
+        messageLi.textContent = message;
+        messagesDiv.appendChild(messageLi);
+        messagesDiv.style.display = "flex";
+        
+        localStorage.removeItem('successMessage');
+    }
 }
+
+window.addEventListener('load', showMessageOnLoad);
 
 function placePiecesUsingFen(board) {
     if (!board) {

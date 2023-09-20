@@ -21,16 +21,22 @@ class ChessGameBatchAdmin(admin.ModelAdmin):
             fens = fen_strings.split("\n")
             for fen in fens:
                 ChessGame.objects.create(batch=obj, fen_string=fen.strip())
+
 # For display purposes inside the PlayedGame module
 class PlayedGameAdmin(admin.ModelAdmin):
-    list_display = ('user', 'chess_game', 'success', 'played_at')
+    list_display = ('user', 'chess_game', 'get_status_display', 'chosenDifficulty', 'played_at',)
     list_filter = ('user', 'success', 'chess_game', 'played_at')
     search_fields = ('user__username', 'chess_game__fen_string')
+
+    def get_status_display(self, obj):
+        return obj.get_status()
+    get_status_display.short_description = 'Status'
 
 # View and manage PlayedGame records directly from the User's admin page
 class PlayedGameInline(admin.TabularInline):
     model = PlayedGame
     extra = 0
+
 # Show related PlayedGame records when viewing a User in the admin page
 class CustomUserAdmin(UserAdmin):
     inlines = [PlayedGameInline]

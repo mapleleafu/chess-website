@@ -45,5 +45,13 @@ class PlayedGame(models.Model):
     chosenDifficulty = models.CharField(max_length=100, blank=True)
     fen_str = models.CharField(max_length=250, blank=True)
 
+    def get_status(self):
+        if self.game_is_on:
+            return f"Game is on, error count: {self.error_count}"
+        elif not self.game_is_on and not self.success:
+            return f"Success: ❌ Game is over"
+        elif not self.game_is_on and self.success:
+            return f"Success: ✅, Got successful in {self.gotCorrectRoundNumber} rounds"
+
     def __str__(self):
-        return f"User: {self.user.username}, Game: {self.chess_game.fen_string}, Success: {self.success}"
+        return f"User: {self.user.username}, Game: {self.chess_game.fen_string}, Status: {self.get_status()}, Difficulty: {self.chosenDifficulty}"

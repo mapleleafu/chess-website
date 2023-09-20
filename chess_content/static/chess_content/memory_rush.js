@@ -78,6 +78,7 @@ let randomFEN,
     viewportWidth,
     mobileView = false,
     try_count;
+    errorCount = 0;
 
 async function videoFunct(event) {
     const csrftoken = getCookie("csrftoken");
@@ -105,18 +106,17 @@ async function videoFunct(event) {
         window.location.href = "/login";
         return;  // Early return
     }
-    
     const data = await response.json();
     if (data) {
         chosenDifficultyCountdownNumber = data.countdown;
         chosenDifficultyRoundNumber = data.round;
         randomFEN = data.random_FEN;
+        if (data.error_count) errorCount = data.error_count;
     }
-    console.log(chosenDifficultyCountdownNumber);
     // Convert the random FEN to a board and place the pieces
     boardFromFEN = fenToBoard(randomFEN);
     placePiecesUsingFen(boardFromFEN);
-    try_count = chosenDifficultyRoundNumber;
+    try_count = chosenDifficultyRoundNumber - errorCount;
 
     viewportWidth = window.innerWidth;
 
@@ -275,8 +275,7 @@ function countdownEndPlacementStart() {
 }
 
 let gameOnFlag = false,
-    piecesByUser,
-    errorCount = 0;
+    piecesByUser;
 
 function submitFunct() {
     const csrftoken = getCookie("csrftoken");
@@ -301,18 +300,28 @@ function submitFunct() {
             piecesByUser: piecesByUser,
         }),
     }).then(response => {
-        if (response.status === 200) {  // If server confirms success
+        if (response.status === 200) { 
             localStorage.setItem('successMessage', 'Matched the memory!');
             location.reload();
         }
         else if (response.status === 400) {
             const errorInfo = {
                 message: 'Pieces Not Correct',
-                countdownNumber: chosenDifficultyCountdownNumber
+                countdownNumber: chosenDifficultyCountdownNumber + 1
             };
             localStorage.setItem('errorInfo', JSON.stringify(errorInfo));
             gameOnFlag = true;
             gameIsNotOver();
+        }
+        else if (response.status === 403) {
+            const errorInfo = {
+                message: "Couldn't Match the Memory",
+                countdownNumber: -1
+            };
+            localStorage.setItem('errorInfo', JSON.stringify(errorInfo));
+            gameOnFlag = false;
+            errorCount = 0;
+            location.reload();
         }
     });
 }
@@ -401,7 +410,6 @@ function displayErrorMessage(errorMessage, errorMessageSecond) {
         }, errorMessageSecond * 1000);
     }
 }
-
 
 function displaySuccessMessage() {
     const message = localStorage.getItem('successMessage');

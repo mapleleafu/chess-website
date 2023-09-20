@@ -37,46 +37,6 @@ def game_history(request):
     return render(request, "chess_content/game_history.html", 
                   {'fen_data': fen_data})
 
-
-@csrf_exempt
-def record_success(request):
-    if request.method == "POST":
-        user = request.user
-        data = json.loads(request.body.decode('utf-8'))
-        FENcode = data.get('FENcode')
-        gotCorrectRoundNumber = data.get('gotCorrectRoundNumber')
-        chosenDifficulty = data.get('chosenDifficulty')
-        chess_game = ChessGame.objects.get(fen_string=FENcode)
-        
-        PlayedGame.objects.create(
-            user=user,
-            chess_game=chess_game,
-            success=True,
-            gotCorrectRoundNumber=gotCorrectRoundNumber,
-            chosenDifficulty=chosenDifficulty
-        )
-        request.session['game_in_progress'] = False
-        del request.session['game_fen']
-        return JsonResponse({"status": "Passed"})
-
-@csrf_exempt
-def record_fail(request):
-    if request.method == "POST":
-        user = request.user
-        data = json.loads(request.body.decode('utf-8'))
-        FENcode = data.get('FENcode')
-        chosenDifficulty = data.get('chosenDifficulty')
-        
-        chess_game = ChessGame.objects.get(fen_string=FENcode)
-
-        PlayedGame.objects.create(
-            user=user, 
-            chess_game=chess_game, 
-            success=False,
-            chosenDifficulty=chosenDifficulty
-        )
-        return JsonResponse({"status": "Failed"})
-
 @csrf_exempt
 def memory_rush(request):
     white_piece_filenames = ['wk.png', 'wq.png', 'wr.png', 'wb.png', 'wn.png', 'wp.png']
@@ -99,6 +59,12 @@ def memory_rush(request):
                    'message_type': message_type 
                    })
 
+DIFFICULTIES = {
+    'easy': {'countdown': 10, 'round': 10},
+    'medium': {'countdown': 5, 'round': 5},
+    'hard': {'countdown': 3, 'round': 3},
+}
+
 @csrf_exempt
 def post_start_game(request):
     if request.method == 'POST':
@@ -106,63 +72,62 @@ def post_start_game(request):
             messages.info(request, "You have to log in to play.")
             return JsonResponse({'status': 'unauthenticated'}, status=401)
         
+        data = json.loads(request.body.decode('utf-8'))
         user = request.user
+        chosenDifficulty = data['chosenDifficulty']
 
-        # Check if the user has any games with game_is_on=True
-        ongoing_games = PlayedGame.objects.filter(user=user, game_is_on=True)
-
-        # Variables to hold game info
-        chosenDifficulty = None
+        # Check if the user has any games with game_is_on=True and matching chosenDifficulty
+        ongoing_games = PlayedGame.objects.filter(user=user, game_is_on=True, chosenDifficulty=chosenDifficulty)
+        print(ongoing_games)
         random_FEN = None
+        error_count = 0
 
         # If no ongoing games exist, proceed with creating a new game.
         if not ongoing_games.exists():
-            data = json.loads(request.body.decode('utf-8'))
-            chosenDifficulty = data['chosenDifficulty']
-
             # Get random unseen ChessGame's FEN string for the user
             fen_list = [game.fen_string for game in ChessGame.objects.exclude(
                 id__in=PlayedGame.objects.filter(user=request.user).values_list('chess_game_id', flat=True)
             )]
             random_FEN = random.choice(fen_list) if fen_list else None
             chess_game = ChessGame.objects.get(fen_string=random_FEN)
-
+            request.session['ongoing_game'] = chess_game.id
             PlayedGame.objects.create(
                 user=user, 
                 chess_game=chess_game, 
                 success=False,
                 game_is_on=True,
-                error_count=0,
+                error_count=error_count,
                 chosenDifficulty=chosenDifficulty,
                 fen_str=random_FEN
             )
         else:
-            # Retrieve chosenDifficulty and fen_str from the ongoing game
-            ongoing_game = ongoing_games.first()  
-            chosenDifficulty = ongoing_game.chosenDifficulty
+            # Retrieve fen_str from the ongoing game
+            ongoing_game = ongoing_games.filter(chosenDifficulty=chosenDifficulty).first()
+            
+            request.session['ongoing_game_id'] = ongoing_game.id
             random_FEN = ongoing_game.fen_str
-
-        difficulties = {
-            'easy': {'countdown': 10, 'round': 10},
-            'medium': {'countdown': 5, 'round': 5},
-            'hard': {'countdown': 3, 'round': 3},
-        }
-
-        countdown = difficulties.get(chosenDifficulty, {}).get('countdown', 'unknown')
-        round_number = difficulties.get(chosenDifficulty, {}).get('round', 'unknown')
+            error_count = ongoing_game.error_count
+        
+        countdown = DIFFICULTIES.get(chosenDifficulty, {}).get('countdown', 'unknown')
+        round_number = DIFFICULTIES.get(chosenDifficulty, {}).get('round', 'unknown')
 
         return JsonResponse({
             'countdown': countdown,
             'round': round_number,
-            'random_FEN': random_FEN
+            'random_FEN': random_FEN,
+            'error_count': error_count
         })
 
 def put_submit_game(request):
     if request.method == 'PUT':
         data = json.loads(request.body.decode('utf-8'))
         pieces_by_user = data['piecesByUser']
-        played_game = PlayedGame.objects.filter(user=request.user).latest('played_at')
+        ongoing_game_id = request.session.get('ongoing_game_id', None)
+        played_game = PlayedGame.objects.get(id=ongoing_game_id)
         fen_str = played_game.fen_str
+        error_count = played_game.error_count
+        chosenDifficulty = played_game.chosenDifficulty
+        round_number = DIFFICULTIES.get(chosenDifficulty, {}).get('round', 'unknown')
 
         transformed_data = []
 
@@ -181,10 +146,24 @@ def put_submit_game(request):
         fen_position_sorted = sorted(fen_position_sorted, key=lambda x: (x['square'], x['name']))
    
         if fen_position_sorted == transformed_data_sorted:
-
+            played_game.success = True
+            played_game.game_is_on = False
+            played_game.gotCorrectRoundNumber = error_count + 1
+            played_game.save()
             return HttpResponseRedirect(reverse("memory_rush"))
         else:
-            return HttpResponse(status=400)
+            if (error_count + 1 == round_number):
+                played_game.success = False
+                played_game.game_is_on = False
+                played_game.error_count = error_count + 1
+                played_game.save()
+                return HttpResponse(status=403)
+            else:
+                played_game.game_is_on = True
+                played_game.success = False
+                played_game.error_count = error_count + 1
+                played_game.save()
+                return HttpResponse(status=400)
 
 def fen_to_board(fen):
     board_str, to_move, castling, en_passant, halfmove, fullmove = fen.split(' ')

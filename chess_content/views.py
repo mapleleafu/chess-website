@@ -28,6 +28,8 @@ def game_history(request):
             'fen_string': game.chess_game.fen_string,
             'success': game.success,
             'played_at': game.played_at,
+            'game_is_on': game.game_is_on,
+            'error_count': game.error_count,
             'gotCorrectRoundNumber': game.gotCorrectRoundNumber,
             'chosenDifficulty': game.chosenDifficulty,
         }
@@ -78,7 +80,6 @@ def post_start_game(request):
 
         # Check if the user has any games with game_is_on=True and matching chosenDifficulty
         ongoing_games = PlayedGame.objects.filter(user=user, game_is_on=True, chosenDifficulty=chosenDifficulty)
-        print(ongoing_games)
         random_FEN = None
         error_count = 0
 
@@ -104,7 +105,6 @@ def post_start_game(request):
             # Retrieve fen_str from the ongoing game
             ongoing_game = ongoing_games.filter(chosenDifficulty=chosenDifficulty).first()
             
-            request.session['ongoing_game_id'] = ongoing_game.id
             random_FEN = ongoing_game.fen_str
             error_count = ongoing_game.error_count
         
@@ -120,13 +120,15 @@ def post_start_game(request):
 
 def put_submit_game(request):
     if request.method == 'PUT':
+        user = request.user
         data = json.loads(request.body.decode('utf-8'))
         pieces_by_user = data['piecesByUser']
-        ongoing_game_id = request.session.get('ongoing_game_id', None)
-        played_game = PlayedGame.objects.get(id=ongoing_game_id)
-        fen_str = played_game.fen_str
-        error_count = played_game.error_count
-        chosenDifficulty = played_game.chosenDifficulty
+        chosenDifficulty = data['chosenDifficulty']
+        ongoing_games = PlayedGame.objects.filter(user=user, game_is_on=True, chosenDifficulty=chosenDifficulty)
+        ongoing_game = ongoing_games.filter(chosenDifficulty=chosenDifficulty).first()
+        fen_str = ongoing_game.fen_str
+        error_count = ongoing_game.error_count
+        chosenDifficulty = ongoing_game.chosenDifficulty
         round_number = DIFFICULTIES.get(chosenDifficulty, {}).get('round', 'unknown')
 
         transformed_data = []
@@ -144,25 +146,28 @@ def put_submit_game(request):
         
         # Sort fen_position_sorted before comparison
         fen_position_sorted = sorted(fen_position_sorted, key=lambda x: (x['square'], x['name']))
-   
+
+        # If the user piece positions are correct
         if fen_position_sorted == transformed_data_sorted:
-            played_game.success = True
-            played_game.game_is_on = False
-            played_game.gotCorrectRoundNumber = error_count + 1
-            played_game.save()
+            ongoing_game.success = True
+            ongoing_game.game_is_on = False
+            ongoing_game.gotCorrectRoundNumber = error_count + 1
+            ongoing_game.save()
             return HttpResponseRedirect(reverse("memory_rush"))
         else:
+            # If the user piece positions are wrong and has no tries left
             if (error_count + 1 == round_number):
-                played_game.success = False
-                played_game.game_is_on = False
-                played_game.error_count = error_count + 1
-                played_game.save()
+                ongoing_game.success = False
+                ongoing_game.game_is_on = False
+                ongoing_game.error_count = error_count + 1
+                ongoing_game.save()
                 return HttpResponse(status=403)
             else:
-                played_game.game_is_on = True
-                played_game.success = False
-                played_game.error_count = error_count + 1
-                played_game.save()
+            # If the user piece positions are wrong and still has tries left
+                ongoing_game.game_is_on = True
+                ongoing_game.success = False
+                ongoing_game.error_count = error_count + 1
+                ongoing_game.save()
                 return HttpResponse(status=400)
 
 def fen_to_board(fen):

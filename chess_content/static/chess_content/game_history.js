@@ -26,15 +26,17 @@ document.addEventListener("DOMContentLoaded", () => {
     let newestFirst = true;  // Initialize the variable to true
 
     const toggleButton = document.getElementById('toggleOrder');
-    toggleButton.addEventListener('click', function() {
-        const profileGames = document.querySelector('.profile_games');
-        const games = Array.from(profileGames.querySelectorAll('.game'));
-        
-        games.reverse().forEach(game => profileGames.appendChild(game));
-        
-        newestFirst = !newestFirst; // Toggle the flag
-        toggleButton.textContent = newestFirst ? "Oldest" : "Newest";
-    });
+    if (toggleButton) {
+        toggleButton.addEventListener('click', function() {
+            const profileGames = document.querySelector('.profile_games');
+            const games = Array.from(profileGames.querySelectorAll('.game'));
+            
+            games.reverse().forEach(game => profileGames.appendChild(game));
+            
+            newestFirst = !newestFirst; // Toggle the flag
+            toggleButton.textContent = newestFirst ? "Oldest" : "Newest";
+        });
+    }
 });
 
 function placePiecesFromFEN(board, pieceContainer) {

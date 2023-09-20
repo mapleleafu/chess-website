@@ -297,6 +297,7 @@ function submitFunct() {
             "X-CSRFToken": csrftoken,
         },
         body: JSON.stringify({
+            chosenDifficulty: chosenDifficulty,
             piecesByUser: piecesByUser,
         }),
     }).then(response => {
@@ -307,16 +308,18 @@ function submitFunct() {
         else if (response.status === 400) {
             const errorInfo = {
                 message: 'Pieces Not Correct',
-                countdownNumber: chosenDifficultyCountdownNumber + 1
+                countdownNumber: chosenDifficultyCountdownNumber + 1,
+                removeAfterTimeout: true
             };
-            localStorage.setItem('errorInfo', JSON.stringify(errorInfo));
+            displayErrorMessage(errorInfo.message, errorInfo.countdownNumber, errorInfo.removeAfterTimeout);
             gameOnFlag = true;
             gameIsNotOver();
         }
         else if (response.status === 403) {
             const errorInfo = {
                 message: "Couldn't Match the Memory",
-                countdownNumber: -1
+                countdownNumber: 1,
+                removeAfterTimeout: false
             };
             localStorage.setItem('errorInfo', JSON.stringify(errorInfo));
             gameOnFlag = false;
@@ -394,7 +397,7 @@ function showMessageOnLoad() {
     }
 }
 
-function displayErrorMessage(errorMessage, errorMessageSecond) {
+function displayErrorMessage(errorMessage, errorMessageSecond, removeAfterTimeout) {
     if (errorMessage) {
         const messagesDiv = document.querySelector(".message_container");
         messagesDiv.classList.add("messages");
@@ -405,9 +408,11 @@ function displayErrorMessage(errorMessage, errorMessageSecond) {
         messagesDiv.appendChild(messageLi);
         messagesDiv.style.display = "flex";
 
-        setTimeout(() => {
-            messagesDiv.innerHTML = "";
-        }, errorMessageSecond * 1000);
+        if (removeAfterTimeout === true) {
+            setTimeout(() => {
+                messagesDiv.innerHTML = "";
+            }, errorMessageSecond * 1000);
+        }
     }
 }
 
@@ -713,7 +718,7 @@ function choosePiece(event) {
         }
     } else {
         clickedPiece.classList.add("animate-background");
-        clickedPiece.style.backgroundColor = "#507ea9";
+        clickedPiece.style.backgroundColor = "#b3f4ff96";
         clickedPiece.style.borderRadius = "10px";
     }
 

@@ -21,7 +21,10 @@
                     <div class="board_container">
                         <div class="piece_container"></div>
                     </div>
-                    <div class="game_info {{ item.chosenDifficulty }}">
+                    <div class="game_info" 
+                        data-difficulty="{{ item.chosenDifficulty }}" 
+                        data-is-on="{{ item.game_is_on }}" 
+                        data-success="{{ item.success }}">
                         <button class="copy">
                             <i class="fas fa-clipboard fa-xs"></i>
                             <i class="fas fa-check fa-xs"></i>
@@ -29,6 +32,8 @@
                         <div>
                             {% if item.success == True %}
                                 ✅
+                            {% elif item.success == False and item.game_is_on == True %}
+                                ➖
                             {% else %}
                                 ❌
                             {% endif %}
@@ -39,6 +44,14 @@
                                     {{ item.gotCorrectRoundNumber }} try
                                 {% else %}
                                     {{ item.gotCorrectRoundNumber }} tries
+                                {% endif %}
+                            </div>
+                        {% elif item.game_is_on %}
+                            <div class="tries">
+                                {% if item.error_count == 1 %}
+                                    {{ item.error_count }} mistake
+                                {% else %}
+                                    {{ item.error_count }} mistakes
                                 {% endif %}
                             </div>
                         {% endif %}

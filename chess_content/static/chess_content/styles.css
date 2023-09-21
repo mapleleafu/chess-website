@@ -671,6 +671,14 @@ input:-webkit-autofill:focus {
     margin-top: -10px;
     color: white;
 }
+
+.blurry {
+    filter: blur(6px);
+    box-shadow: none;
+}
+.board_wrapper {
+    overflow: hidden;
+}
   
 /* Mobile view */
 @media only screen and (max-width: 450px) {

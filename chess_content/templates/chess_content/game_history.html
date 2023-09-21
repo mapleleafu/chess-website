@@ -18,8 +18,10 @@
         <div class="profile_games">
             {% for item in fen_data %}
                 <div class="game" id="game{{ forloop.counter }}" data-fen="{{ item.fen_string }}">
-                    <div class="board_container">
-                        <div class="piece_container"></div>
+                    <div class="board_wrapper">
+                        <div class="board_container {% if item.success == False and item.game_is_on == True %}blurry{% endif %}">
+                            <div class="piece_container"></div>
+                        </div>
                     </div>
                     <div class="game_info" 
                         data-difficulty="{{ item.chosenDifficulty }}" 

@@ -16,7 +16,11 @@ document.addEventListener("DOMContentLoaded", () => {
         boardContainer.appendChild(img);
 
         // Get the FEN for each game
-        const fenData = element.getAttribute('data-fen');
+        let fenData = element.getAttribute('data-fen');
+        const isOngoing = element.querySelector('.game_info').getAttribute('data-is-on') === "True";
+        if (isOngoing) {
+          fenData = "1k1r3r/pp4b1/2p3pp/2P2p2/nP1pR2P/q2N1P2/3PQ1P1/B1R2K2 w - - 0 25"
+        }
 
         // Convert FEN to board and place pieces
         const boardFromFEN = fenToBoard(fenData);

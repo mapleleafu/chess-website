@@ -249,7 +249,7 @@ function countdownEndPlacementStart() {
     ).innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
 
     // Making sure that startPositionFunct works properly by putting down a piece once
-    if (try_count === chosenDifficultyRoundNumber) {
+    if (gameOnFlag === false) {
         image = document.querySelector('img[src="/static/chess_content/assets/pieces/wn.png"]');
         image.click()
         const boardRect = document

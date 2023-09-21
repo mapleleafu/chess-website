@@ -41,6 +41,7 @@ class PlayedGame(models.Model):
     game_is_on = models.BooleanField(default=False)
     played_at = models.DateTimeField(auto_now_add=True)
     error_count =  models.IntegerField(null=True, blank=True)
+    round_number =  models.IntegerField(null=True, blank=True)
     gotCorrectRoundNumber = models.IntegerField(null=True, blank=True)
     chosenDifficulty = models.CharField(max_length=100, blank=True)
     fen_str = models.CharField(max_length=250, blank=True)

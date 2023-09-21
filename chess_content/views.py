@@ -77,7 +77,7 @@ def post_start_game(request):
         data = json.loads(request.body.decode('utf-8'))
         user = request.user
         chosenDifficulty = data['chosenDifficulty']
-
+        
         # Check if the user has any games with game_is_on=True and matching chosenDifficulty
         ongoing_games = PlayedGame.objects.filter(user=user, game_is_on=True, chosenDifficulty=chosenDifficulty)
         random_FEN = None
@@ -91,12 +91,13 @@ def post_start_game(request):
             )]
             random_FEN = random.choice(fen_list) if fen_list else None
             chess_game = ChessGame.objects.get(fen_string=random_FEN)
-            request.session['ongoing_game'] = chess_game.id
-            PlayedGame.objects.create(
+            round_number = DIFFICULTIES.get(chosenDifficulty, {}).get('round', 'unknown')
+            ongoing_game = PlayedGame.objects.create(
                 user=user, 
                 chess_game=chess_game, 
                 success=False,
                 game_is_on=True,
+                round_number=round_number,
                 error_count=error_count,
                 chosenDifficulty=chosenDifficulty,
                 fen_str=random_FEN
@@ -107,15 +108,25 @@ def post_start_game(request):
             
             random_FEN = ongoing_game.fen_str
             error_count = ongoing_game.error_count
-        
+
+        error_for_json = error_count
         countdown = DIFFICULTIES.get(chosenDifficulty, {}).get('countdown', 'unknown')
         round_number = DIFFICULTIES.get(chosenDifficulty, {}).get('round', 'unknown')
+
+        # Increment the error count by 1 to account for potential game abandonment by the user
+        request.session['game_fen'] = ongoing_game.fen_str
+        ongoing_game.error_count += 1
+        ongoing_game.save()
+        if (ongoing_game.error_count == ongoing_game.round_number):
+            ongoing_game.success = False
+            ongoing_game.game_is_on = False
+            ongoing_game.save()
 
         return JsonResponse({
             'countdown': countdown,
             'round': round_number,
             'random_FEN': random_FEN,
-            'error_count': error_count
+            'error_count': error_for_json
         })
 
 def put_submit_game(request):
@@ -124,6 +135,18 @@ def put_submit_game(request):
         data = json.loads(request.body.decode('utf-8'))
         pieces_by_user = data['piecesByUser']
         chosenDifficulty = data['chosenDifficulty']
+
+        # User sent a PUT request; decrement the error count by 1 to reverse the previous increment meant for handling game abandonment
+        game_fen = request.session.get('game_fen')
+        if game_fen:
+            game = PlayedGame.objects.filter(user=user, fen_str=game_fen).first()
+            if game:
+                if game.error_count == game.round_number:
+                    game.game_is_on = True
+                    game.save()
+                game.error_count -= 1
+                game.save()
+
         ongoing_games = PlayedGame.objects.filter(user=user, game_is_on=True, chosenDifficulty=chosenDifficulty)
         ongoing_game = ongoing_games.filter(chosenDifficulty=chosenDifficulty).first()
         fen_str = ongoing_game.fen_str
@@ -153,6 +176,8 @@ def put_submit_game(request):
             ongoing_game.game_is_on = False
             ongoing_game.gotCorrectRoundNumber = error_count + 1
             ongoing_game.save()
+            if 'game_fen' in request.session:
+                del request.session['game_fen']
             return HttpResponseRedirect(reverse("memory_rush"))
         else:
             # If the user piece positions are wrong and has no tries left
@@ -161,6 +186,8 @@ def put_submit_game(request):
                 ongoing_game.game_is_on = False
                 ongoing_game.error_count = error_count + 1
                 ongoing_game.save()
+                if 'game_fen' in request.session:
+                    del request.session['game_fen']
                 return HttpResponse(status=403)
             else:
             # If the user piece positions are wrong and still has tries left
@@ -168,6 +195,8 @@ def put_submit_game(request):
                 ongoing_game.success = False
                 ongoing_game.error_count = error_count + 1
                 ongoing_game.save()
+                if 'game_fen' in request.session:
+                    del request.session['game_fen']
                 return HttpResponse(status=400)
 
 def fen_to_board(fen):

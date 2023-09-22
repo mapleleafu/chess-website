@@ -200,58 +200,66 @@ function startGame(chosenDifficultyCountdownNumber) {
 
 function startCountdown(chosenDifficultyCountdownNumber) {
     const countdownElement = document.querySelector(".countdown");
-    countdownElement.style.display = "block";
-    
+    if (countdownElement.style.display != "block")
+        countdownElement.style.display = "block";
+
     let counter = chosenDifficultyCountdownNumber;
+
     const interval = setInterval(() => {
         countdownElement.textContent = counter;
+
+        // Apply a dynamic scaling based on the counter value
         if (counter >= 0) {
-            const scaleValue = Math.max(1, 1 + (5 - counter) * 0.2);
+            let scaleValue = Math.max(1, 1 + (5 - counter) * 0.2);
             countdownElement.style.transform = `scale(${scaleValue})`;
         }
+
         counter--;
 
-        if (counter < 0) {
+        // Countdown end number
+        if (counter < 0 && gameOnFlag === false) {
             clearInterval(interval);
             countdownElement.style.display = "none";
+            clearFunct();
             countdownElement.textContent = "";
-
-            if (gameOnFlag) {
-                userPlayingFEN = fenToBoard(listToFEN(piecesByUser));
-                placePiecesUsingFen(userPlayingFEN);
-            } else {
-                clearFunct();
-            }
-            
+            countdownEndPlacementStart();
+        } else if (counter < 0 && gameOnFlag === true) {
+            clearInterval(interval);
+            countdownElement.style.display = "none";
+            userPlayingFEN = fenToBoard(listToFEN(piecesByUser));
+            clearFunct();
+            placePiecesUsingFen(userPlayingFEN);
+            countdownElement.textContent = "";
             countdownEndPlacementStart();
         }
-    }, 1000);
+    }, 1000); // Run every second
 }
 
-
 function countdownEndPlacementStart() {
-    // Show buttons and pieces
-    const whitePieces = document.querySelector(".white_chess_pieces");
-    const blackPieces = document.querySelector(".black_chess_pieces");
-    const controlPanel = document.querySelector(".control_panel");
-    const buttons = document.querySelectorAll(".btn.submit, .btn.clear, .btn.start");
+    // Display visibility settings for other buttons and pieces
+    document.querySelector(".white_chess_pieces").style.visibility = "visible";
+    document.querySelector(".black_chess_pieces").style.visibility = "visible";
 
-    whitePieces.style.visibility = "visible";
-    blackPieces.style.visibility = "visible";
-    controlPanel.style.visibility = "visible";
-    buttons.forEach(btn => btn.style.display = "block");
-
-    document.querySelector(".p1.tries").innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
+    document.querySelector(".control_panel").style.visibility = "visible";
+    document.querySelector(".btn.submit").style.display = "block";
+    document.querySelector(".btn.clear").style.display = "block";
+    document.querySelector(".btn.start").style.display = "block";
+    document.querySelector(
+        ".p1.tries"
+    ).innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
 
     // Making sure that startPositionFunct works properly by putting down a piece once
-    if (!gameOnFlag) {
-        const image = document.querySelector('img[src="/static/chess_content/assets/pieces/wn.png"]');
+    if (gameOnFlag === false) {
+        image = document.querySelector(
+            'img[src="/static/chess_content/assets/pieces/wn.png"]'
+        );
         image.click();
+        const boardRect = document
+            .querySelector(".memory_board")
+            .getBoundingClientRect();
 
-        const boardRect = document.querySelector(".memory_board").getBoundingClientRect();
         const { left: boardX, top: boardY } = boardRect;
         const memoryBoard = document.querySelector(".memory_board");
-
         const event = new MouseEvent("click", {
             view: window,
             bubbles: true,
@@ -259,17 +267,15 @@ function countdownEndPlacementStart() {
             clientX: boardX + boardX / 2,
             clientY: boardY + boardY / 2,
         });
-
         memoryBoard.dispatchEvent(event);
         activePiece.remove();
         activePiece = null;
         clearFunct();
-        
         image.classList.remove("animate-background");
         image.style.backgroundColor = "";
     }
 }
-    
+
 let gameOnFlag = false,
     piecesByUser;
 
@@ -328,51 +334,45 @@ function submitFunct() {
 }
 
 function gameIsNotOver() {
-    // Show/hide elements
-    const mainWrapper = document.querySelector(".main_wrapper");
-    mainWrapper.style.display = "flex";
+    // Adding memory rush's page
+    document.querySelector(".main_wrapper").style.display = "flex";
 
-    const whitePieces = document.querySelector(".white_chess_pieces");
-    const blackPieces = document.querySelector(".black_chess_pieces");
-    const controlPanel = document.querySelector(".control_panel");
+    document.querySelector(".white_chess_pieces").style.visibility = "hidden";
+    document.querySelector(".black_chess_pieces").style.visibility = "hidden";
 
-    whitePieces.style.visibility = "hidden";
-    blackPieces.style.visibility = "hidden";
-    controlPanel.style.visibility = "hidden";
+    document.querySelector(".control_panel").style.visibility = "hidden";
 
-    // Clear active and previously clicked pieces
+    // Clearing piece on the cursor and piece section background colors
     if (activePiece) {
         activePiece.remove();
         activePiece = null;
     }
-
-    if (previouslyClickedPiece) {
+    if (previouslyClickedPiece && previouslyClickedPiece.alt != "trash") {
         previouslyClickedPiece.classList.remove("animate-background");
         previouslyClickedPiece.style.background = "";
-
-        if (previouslyClickedPiece.alt === "trash") {
-            const trashElements = document.querySelectorAll(".trash.animate-background");
-            trashElements.forEach(el => {
-                el.classList.remove("animate-background");
-                el.style.background = "";
-            });
-        }
-
         previouslyClickedPiece = null;
+    } else if (
+        previouslyClickedPiece &&
+        previouslyClickedPiece.alt === "trash"
+    ) {
+        document
+            .querySelectorAll(".trash.animate-background")
+            .forEach((element) => {
+                element.classList.remove("animate-background");
+                element.style.background = "";
+                previouslyClickedPiece = null;
+            });
     }
+    if (cursorModeEnabled === true) cursorDisable();
 
-    // Disable cursor mode
-    if (cursorModeEnabled) cursorDisable();
-
-    // Reset the board
+    // Set up the original position
     clearFunct();
     boardFromFEN = fenToBoard(randomFEN);
     placePiecesUsingFen(boardFromFEN);
 
-    // Start countdown
+    // Start the countdown
     startCountdown(chosenDifficultyCountdownNumber);
 }
-
 
 function showMessageOnLoad() {
     const errorInfoStr = localStorage.getItem("errorInfo");

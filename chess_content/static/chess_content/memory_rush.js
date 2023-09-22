@@ -78,18 +78,18 @@ let randomFEN,
     viewportWidth,
     mobileView = false,
     try_count;
-    errorCount = 0;
+errorCount = 0;
 
 async function videoFunct(event) {
     const csrftoken = getCookie("csrftoken");
     const videoElement = event.currentTarget;
-    const src = videoElement.querySelector('source').src;
-    const videoName = src.split('/').pop().split('.')[0]; // Extract the video name without extension
+    const src = videoElement.querySelector("source").src;
+    const videoName = src.split("/").pop().split(".")[0]; // Extract the video name without extension
 
     // Determine the difficulty level based on the video name
     const difficulties = ["easy", "medium", "hard"];
-    chosenDifficulty = difficulties.find(diff => videoName.includes(diff));
-    
+    chosenDifficulty = difficulties.find((diff) => videoName.includes(diff));
+
     const response = await fetch("/post_start_game", {
         method: "POST",
         headers: {
@@ -97,14 +97,14 @@ async function videoFunct(event) {
             "X-CSRFToken": csrftoken,
         },
         body: JSON.stringify({
-            chosenDifficulty: chosenDifficulty
+            chosenDifficulty: chosenDifficulty,
         }),
     });
-    
+
     // Check for unauthorized status
     if (response.status === 401) {
         window.location.href = "/login";
-        return;  // Early return
+        return; // Early return
     }
     const data = await response.json();
     if (data) {
@@ -200,80 +200,76 @@ function startGame(chosenDifficultyCountdownNumber) {
 
 function startCountdown(chosenDifficultyCountdownNumber) {
     const countdownElement = document.querySelector(".countdown");
-    if (countdownElement.style.display != "block")
-        countdownElement.style.display = "block";
-
+    countdownElement.style.display = "block";
+    
     let counter = chosenDifficultyCountdownNumber;
-
     const interval = setInterval(() => {
         countdownElement.textContent = counter;
-
-        // Apply a dynamic scaling based on the counter value
         if (counter >= 0) {
-            let scaleValue = Math.max(1, 1 + (5 - counter) * 0.2);
+            const scaleValue = Math.max(1, 1 + (5 - counter) * 0.2);
             countdownElement.style.transform = `scale(${scaleValue})`;
         }
-
         counter--;
 
-        // Countdown end number
-        if (counter < 0 && gameOnFlag === false) {
+        if (counter < 0) {
             clearInterval(interval);
             countdownElement.style.display = "none";
-            clearFunct();
             countdownElement.textContent = "";
-            countdownEndPlacementStart();
-        } else if (counter < 0 && gameOnFlag === true) {
-            clearInterval(interval);
-            countdownElement.style.display = "none";
-            userPlayingFEN = fenToBoard(listToFEN(piecesByUser));
-            clearFunct();
-            placePiecesUsingFen(userPlayingFEN);
-            countdownElement.textContent = "";
+
+            if (gameOnFlag) {
+                userPlayingFEN = fenToBoard(listToFEN(piecesByUser));
+                placePiecesUsingFen(userPlayingFEN);
+            } else {
+                clearFunct();
+            }
+            
             countdownEndPlacementStart();
         }
-    }, 1000); // Run every second
+    }, 1000);
 }
 
-function countdownEndPlacementStart() {
-    // Display visibility settings for other buttons and pieces
-    document.querySelector(".white_chess_pieces").style.visibility = "visible";
-    document.querySelector(".black_chess_pieces").style.visibility = "visible";
 
-    document.querySelector(".control_panel").style.visibility = "visible";
-    document.querySelector(".btn.submit").style.display = "block";
-    document.querySelector(".btn.clear").style.display = "block";
-    document.querySelector(".btn.start").style.display = "block";
-    document.querySelector(
-        ".p1.tries"
-    ).innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
+function countdownEndPlacementStart() {
+    // Show buttons and pieces
+    const whitePieces = document.querySelector(".white_chess_pieces");
+    const blackPieces = document.querySelector(".black_chess_pieces");
+    const controlPanel = document.querySelector(".control_panel");
+    const buttons = document.querySelectorAll(".btn.submit, .btn.clear, .btn.start");
+
+    whitePieces.style.visibility = "visible";
+    blackPieces.style.visibility = "visible";
+    controlPanel.style.visibility = "visible";
+    buttons.forEach(btn => btn.style.display = "block");
+
+    document.querySelector(".p1.tries").innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
 
     // Making sure that startPositionFunct works properly by putting down a piece once
-    if (gameOnFlag === false) {
-        image = document.querySelector('img[src="/static/chess_content/assets/pieces/wn.png"]');
-        image.click()
-        const boardRect = document
-            .querySelector(".memory_board")
-            .getBoundingClientRect();
-    
+    if (!gameOnFlag) {
+        const image = document.querySelector('img[src="/static/chess_content/assets/pieces/wn.png"]');
+        image.click();
+
+        const boardRect = document.querySelector(".memory_board").getBoundingClientRect();
         const { left: boardX, top: boardY } = boardRect;
-        const memoryBoard = document.querySelector('.memory_board');
-        const event = new MouseEvent('click', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true,
-        'clientX': boardX + boardX/2,
-        'clientY': boardY + boardY/2
+        const memoryBoard = document.querySelector(".memory_board");
+
+        const event = new MouseEvent("click", {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+            clientX: boardX + boardX / 2,
+            clientY: boardY + boardY / 2,
         });
+
         memoryBoard.dispatchEvent(event);
         activePiece.remove();
         activePiece = null;
         clearFunct();
+        
         image.classList.remove("animate-background");
         image.style.backgroundColor = "";
     }
 }
-
+    
 let gameOnFlag = false,
     piecesByUser;
 
@@ -300,28 +296,30 @@ function submitFunct() {
             chosenDifficulty: chosenDifficulty,
             piecesByUser: piecesByUser,
         }),
-    }).then(response => {
-        if (response.status === 200) { 
-            localStorage.setItem('successMessage', 'Matched the memory!');
+    }).then((response) => {
+        if (response.status === 200) {
+            localStorage.setItem("successMessage", "Matched the memory!");
             location.reload();
-        }
-        else if (response.status === 400) {
+        } else if (response.status === 400) {
             const errorInfo = {
-                message: 'Pieces Not Correct',
+                message: "Pieces Not Correct",
                 countdownNumber: chosenDifficultyCountdownNumber + 1,
-                removeAfterTimeout: true
+                removeAfterTimeout: true,
             };
-            displayErrorMessage(errorInfo.message, errorInfo.countdownNumber, errorInfo.removeAfterTimeout);
+            displayErrorMessage(
+                errorInfo.message,
+                errorInfo.countdownNumber,
+                errorInfo.removeAfterTimeout
+            );
             gameOnFlag = true;
             gameIsNotOver();
-        }
-        else if (response.status === 403) {
+        } else if (response.status === 403) {
             const errorInfo = {
                 message: "Couldn't Match the Memory",
                 countdownNumber: 1,
-                removeAfterTimeout: false
+                removeAfterTimeout: false,
             };
-            localStorage.setItem('errorInfo', JSON.stringify(errorInfo));
+            localStorage.setItem("errorInfo", JSON.stringify(errorInfo));
             gameOnFlag = false;
             errorCount = 0;
             location.reload();
@@ -330,48 +328,54 @@ function submitFunct() {
 }
 
 function gameIsNotOver() {
-    // Adding memory rush's page
-    document.querySelector(".main_wrapper").style.display = "flex";
+    // Show/hide elements
+    const mainWrapper = document.querySelector(".main_wrapper");
+    mainWrapper.style.display = "flex";
 
-    document.querySelector(".white_chess_pieces").style.visibility = "hidden";
-    document.querySelector(".black_chess_pieces").style.visibility = "hidden";
+    const whitePieces = document.querySelector(".white_chess_pieces");
+    const blackPieces = document.querySelector(".black_chess_pieces");
+    const controlPanel = document.querySelector(".control_panel");
 
-    document.querySelector(".control_panel").style.visibility = "hidden";
+    whitePieces.style.visibility = "hidden";
+    blackPieces.style.visibility = "hidden";
+    controlPanel.style.visibility = "hidden";
 
-    // Clearing piece on the cursor and piece section background colors
+    // Clear active and previously clicked pieces
     if (activePiece) {
         activePiece.remove();
         activePiece = null;
     }
-    if (previouslyClickedPiece && previouslyClickedPiece.alt != "trash") {
+
+    if (previouslyClickedPiece) {
         previouslyClickedPiece.classList.remove("animate-background");
         previouslyClickedPiece.style.background = "";
-        previouslyClickedPiece = null;
-    } else if (
-        previouslyClickedPiece &&
-        previouslyClickedPiece.alt === "trash"
-    ) {
-        document
-            .querySelectorAll(".trash.animate-background")
-            .forEach((element) => {
-                element.classList.remove("animate-background");
-                element.style.background = "";
-                previouslyClickedPiece = null;
-            });
-    }
-    if (cursorModeEnabled === true) cursorDisable();
 
-    // Set up the original position
+        if (previouslyClickedPiece.alt === "trash") {
+            const trashElements = document.querySelectorAll(".trash.animate-background");
+            trashElements.forEach(el => {
+                el.classList.remove("animate-background");
+                el.style.background = "";
+            });
+        }
+
+        previouslyClickedPiece = null;
+    }
+
+    // Disable cursor mode
+    if (cursorModeEnabled) cursorDisable();
+
+    // Reset the board
     clearFunct();
     boardFromFEN = fenToBoard(randomFEN);
     placePiecesUsingFen(boardFromFEN);
 
-    // Start the countdown
+    // Start countdown
     startCountdown(chosenDifficultyCountdownNumber);
 }
 
+
 function showMessageOnLoad() {
-    const errorInfoStr = localStorage.getItem('errorInfo');
+    const errorInfoStr = localStorage.getItem("errorInfo");
     let errorMessage = null;
     let errorMessageSecond = null;
 
@@ -380,59 +384,52 @@ function showMessageOnLoad() {
         errorMessage = errorInfo.message;
         errorMessageSecond = errorInfo.countdownNumber;
     } else {
-        errorMessage = localStorage.getItem('errorMessage');
+        errorMessage = localStorage.getItem("errorMessage");
     }
 
-    const successMessage = localStorage.getItem('successMessage');
+    const successMessage = localStorage.getItem("successMessage");
 
     if (errorMessage) {
         displayErrorMessage(errorMessage, errorMessageSecond);
-        localStorage.removeItem('errorMessage');
-        localStorage.removeItem('errorInfo');
+        localStorage.removeItem("errorMessage");
+        localStorage.removeItem("errorInfo");
     }
-    
+
     if (successMessage) {
-        displaySuccessMessage(); 
-        localStorage.removeItem('successMessage');
+        displaySuccessMessage();
+        localStorage.removeItem("successMessage");
     }
 }
 
 function displayErrorMessage(errorMessage, errorMessageSecond, removeAfterTimeout) {
-    if (errorMessage) {
-        const messagesDiv = document.querySelector(".message_container");
-        messagesDiv.classList.add("messages");
-        messagesDiv.innerHTML = "";
-        const messageLi = document.createElement("li");
-        messageLi.className = "error";
-        messageLi.textContent = errorMessage;
-        messagesDiv.appendChild(messageLi);
-        messagesDiv.style.display = "flex";
+    if (!errorMessage) return;
 
-        if (removeAfterTimeout === true) {
-            setTimeout(() => {
-                messagesDiv.innerHTML = "";
-            }, errorMessageSecond * 1000);
-        }
+    const messagesDiv = document.querySelector(".message_container");
+    messagesDiv.classList.add("messages");
+    messagesDiv.innerHTML = `<li class="error">${errorMessage}</li>`;
+    messagesDiv.style.display = "flex";
+
+    if (removeAfterTimeout) {
+        setTimeout(() => {
+            messagesDiv.innerHTML = "";
+        }, errorMessageSecond * 1000);
     }
-}
+} 
 
 function displaySuccessMessage() {
-    const message = localStorage.getItem('successMessage');
-    if (message) {
-        const messagesDiv = document.querySelector(".message_container");
-        messagesDiv.classList.add("messages");
-        messagesDiv.innerHTML = "";
-        const messageLi = document.createElement("li");
-        messageLi.className = "success";
-        messageLi.textContent = message;
-        messagesDiv.appendChild(messageLi);
-        messagesDiv.style.display = "flex";
-        
-        localStorage.removeItem('successMessage');
-    }
+    const message = localStorage.getItem("successMessage");
+    if (!message) return;
+
+    const messagesDiv = document.querySelector(".message_container");
+    messagesDiv.classList.add("messages");
+    messagesDiv.innerHTML = `<li class="success">${message}</li>`;
+    messagesDiv.style.display = "flex";
+
+    localStorage.removeItem("successMessage");
 }
 
-window.addEventListener('load', showMessageOnLoad);
+
+window.addEventListener("load", showMessageOnLoad);
 
 function placePiecesUsingFen(board) {
     if (!board) {
@@ -603,9 +600,11 @@ function cursorFunct(event) {
     }
 
     // Reset background colors for other elements
-    document.querySelectorAll(".animate-background, .trash").forEach((element) => {
-        element.style.backgroundColor = "";
-    });
+    document
+        .querySelectorAll(".animate-background, .trash")
+        .forEach((element) => {
+            element.style.backgroundColor = "";
+        });
 
     const cursors = document.querySelectorAll(".cursor");
     cursors.forEach((cursor) => {
@@ -613,7 +612,9 @@ function cursorFunct(event) {
         cursor.style.backgroundColor = "#4aa156b0";
     });
 
-    const duplicateContainer = document.querySelector(".duplicate_piece_container");
+    const duplicateContainer = document.querySelector(
+        ".duplicate_piece_container"
+    );
 
     if (!cursorModeEnabled) {
         duplicateContainerClickListener = (event) => {
@@ -621,9 +622,11 @@ function cursorFunct(event) {
 
             // For moving pieces around on empty squares
             choosePiece(event);
-
         };
-        duplicateContainer.addEventListener("mousedown", duplicateContainerClickListener);
+        duplicateContainer.addEventListener(
+            "mousedown",
+            duplicateContainerClickListener
+        );
         cursorModeEnabled = true; // set flag to true
     }
 }
@@ -786,7 +789,7 @@ let squareWidth, squareHeight;
 function placePiece(event) {
     if (!activePiece || activePiece.className == "trash animate-background")
         return;
-    
+
     const boardRect = document
         .querySelector(".memory_board")
         .getBoundingClientRect();
@@ -876,16 +879,15 @@ function placePiece(event) {
     }
 
     document.addEventListener("click", function (event) {
-        if (!activePiece) return;
-        if (event.target.classList.contains("duplicate-piece")) {
-            } if (duplicateContainer.contains(event.target)) {
-                if (activePiece.src === event.target.src) {
-                    duplicateContainer.removeChild(event.target);
-                } else if (activePiece) {
-                    duplicateContainer.removeChild(event.target);
-                    placePiece(event); // Put down the active piece
+        if (!activePiece || !event.target.classList.contains("duplicate-piece")) return;
+    
+        if (duplicateContainer.contains(event.target)) {
+            if (activePiece.src === event.target.src || activePiece) {
+                duplicateContainer.removeChild(event.target);
+                if (activePiece.src !== event.target.src) {
+                    placePiece(event);
                 }
             }
         }
-    );
+    });    
 }

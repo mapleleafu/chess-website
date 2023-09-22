@@ -64,7 +64,7 @@ def memory_rush(request):
 DIFFICULTIES = {
     'easy': {'countdown': 10, 'round': 10},
     'medium': {'countdown': 5, 'round': 5},
-    'hard': {'countdown': 3, 'round': 3},
+    'hard': {'countdown': 0, 'round': 3},
 }
 
 @csrf_exempt

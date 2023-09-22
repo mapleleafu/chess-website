@@ -18,10 +18,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Get the FEN for each game
         let fenData = element.getAttribute('data-fen');
         const isOngoing = element.querySelector('.game_info').getAttribute('data-is-on') === "True";
-        if (isOngoing) {
-          fenData = "1k1r3r/pp4b1/2p3pp/2P2p2/nP1pR2P/q2N1P2/3PQ1P1/B1R2K2 w - - 0 25"
+        const copyButton = element.querySelector('.copy');
+        if (isOngoing && copyButton) {
+            copyButton.remove();
+            fenData = randomFEN();
         }
-
         // Convert FEN to board and place pieces
         const boardFromFEN = fenToBoard(fenData);
         placePiecesFromFEN(boardFromFEN, pieceContainer);
@@ -42,6 +43,39 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+function randomFEN() {
+    const pieces = ['p', 'r', 'n', 'b', 'q', 'k', 'P', 'R', 'N', 'B', 'Q', 'K'];
+    let fen = "";
+  
+    for (let row = 0; row < 8; row++) {
+      let empty = 0;
+  
+      for (let col = 0; col < 8; col++) {
+        if (Math.random() > 0.7) { // Adjust probability as you like
+          if (empty > 0) {
+            fen += empty;
+            empty = 0;
+          }
+          const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
+          fen += randomPiece;
+        } else {
+          empty++;
+        }
+      }
+  
+      if (empty > 0) {
+        fen += empty;
+      }
+  
+      if (row < 7) {
+        fen += "/";
+      }
+    }
+  
+    fen += " w KQkq - 0 1"; // Adding some default values for the rest of the FEN parts
+    return fen;
+  }
 
 function placePiecesFromFEN(board, pieceContainer) {
     if (!board) {

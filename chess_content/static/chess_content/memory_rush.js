@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Attaching click event to both chess_pieces and trash
     document.querySelectorAll(".chess_pieces, .trash").forEach((piece) => {
-        piece.addEventListener("click", choosePiece);
         piece.addEventListener("click", cursorDisable);
+        piece.addEventListener("click", choosePiece);
     });
 
     // Attach mouseenter and click events to cursor
@@ -603,49 +603,27 @@ function cursorFunct(event) {
     }
 
     // Reset background colors for other elements
-    document
-        .querySelectorAll(".animate-background, .trash")
-        .forEach((element) => (element.style.backgroundColor = ""));
+    document.querySelectorAll(".animate-background, .trash").forEach((element) => {
+        element.style.backgroundColor = "";
+    });
 
     const cursors = document.querySelectorAll(".cursor");
-
-    // Change the background attributes of cursors
     cursors.forEach((cursor) => {
         cursor.classList.add("animate-background");
         cursor.style.backgroundColor = "#4aa156b0";
     });
 
-    // Handle duplicate container clicks
-    const duplicateContainer = document.querySelector(
-        ".duplicate_piece_container"
-    );
+    const duplicateContainer = document.querySelector(".duplicate_piece_container");
 
     if (!cursorModeEnabled) {
         duplicateContainerClickListener = (event) => {
-            // When you place a piece down on another piece, remove the original one
-            if (activePiece != null) {
-                // If they're the same piece, remove the piece from the cursor
-                if (activePiece.alt === event.target.alt) {
-                    activePiece.remove();
-                    activePiece = null;
-                } else {
-                    duplicateContainer.removeChild(event.target);
-                    placePiece(event);
-                }
-            }
-            // For moving pieces around on empty squares
-            else if (
-                event.target.classList.value ===
-                "chess_pieces animate-background duplicate-piece"
-            ) {
-                choosePiece(event);
-            }
-        };
+            event.target.remove();
 
-        duplicateContainer.addEventListener(
-            "click",
-            duplicateContainerClickListener
-        );
+            // For moving pieces around on empty squares
+            choosePiece(event);
+
+        };
+        duplicateContainer.addEventListener("mousedown", duplicateContainerClickListener);
         cursorModeEnabled = true; // set flag to true
     }
 }
@@ -656,9 +634,9 @@ function cursorDisable() {
     );
     const cursors = document.querySelectorAll(".cursor");
 
-    if (cursorModeEnabled) {
+    if (cursorModeEnabled === true) {
         duplicateContainer.removeEventListener(
-            "click",
+            "mousedown",
             duplicateContainerClickListener
         );
         cursorModeEnabled = false; // set flag back to false
@@ -699,7 +677,7 @@ function choosePiece(event) {
                 trash.classList.remove("animate-background");
                 trash.style.backgroundColor = "";
             });
-        } else {
+        } else if (!cursorModeEnabled) {
             previouslyClickedPiece.style.backgroundColor = "";
             previouslyClickedPiece.classList.remove("animate-background");
         }
@@ -716,7 +694,7 @@ function choosePiece(event) {
         if (activePiece && activePiece.classList.contains("trash")) {
             activePiece = null;
         }
-    } else {
+    } else if (!cursorModeEnabled) {
         clickedPiece.classList.add("animate-background");
         clickedPiece.style.backgroundColor = "#b3f4ff96";
         clickedPiece.style.borderRadius = "10px";
@@ -757,6 +735,10 @@ function choosePiece(event) {
         lastMouseEvent = event;
     });
 
+    if (cursorModeEnabled) {
+        document.addEventListener("mouseup", dropPiece);
+    }
+
     // Smooth scrolling when a piece is selected
     document.addEventListener("scroll", function () {
         if (activePiece && lastMouseEvent) {
@@ -769,16 +751,6 @@ function choosePiece(event) {
         }
     });
 
-    function movePiece(event) {
-        if (!activePiece) return;
-        activePiece.style.left = `${
-            event.clientX + window.scrollX - activePiece.width / 2
-        }px`;
-        activePiece.style.top = `${
-            event.clientY + window.scrollY - activePiece.height / 2
-        }px`;
-    }
-
     // Placing a piece down on the board
     document
         .querySelector(".memory_board")
@@ -788,6 +760,25 @@ function choosePiece(event) {
     if (viewportWidth <= 450) {
         activePiece.remove();
     }
+}
+
+function dropPiece(event) {
+    if (activePiece) {
+        placePiece(event);
+        document.removeEventListener("mousemove", movePiece);
+        document.removeEventListener("mouseup", dropPiece);
+        activePiece = null;
+    }
+}
+
+function movePiece(event) {
+    if (!activePiece) return;
+    activePiece.style.left = `${
+        event.clientX + window.scrollX - activePiece.width / 2
+    }px`;
+    activePiece.style.top = `${
+        event.clientY + window.scrollY - activePiece.height / 2
+    }px`;
 }
 
 let squareWidth, squareHeight;
@@ -877,17 +868,17 @@ function placePiece(event) {
         activePiece = null;
     }
 
+    // Remove a piece from the board if another piece is placed on it using the cursor
+    if (cursorModeEnabled === true) {
+        if (duplicateContainer.contains(event.target)) {
+            duplicateContainer.removeChild(event.target);
+        }
+    }
+
     document.addEventListener("click", function (event) {
         if (!activePiece) return;
-
         if (event.target.classList.contains("duplicate-piece")) {
-            // If cursor is enabled, remove the chosen piece from the board
-            if (
-                cursorModeEnabled &&
-                duplicateContainer.contains(event.target)
-            ) {
-                duplicateContainer.removeChild(event.target);
-            } else if (duplicateContainer.contains(event.target)) {
+            } if (duplicateContainer.contains(event.target)) {
                 if (activePiece.src === event.target.src) {
                     duplicateContainer.removeChild(event.target);
                 } else if (activePiece) {
@@ -896,5 +887,5 @@ function placePiece(event) {
                 }
             }
         }
-    });
+    );
 }

@@ -742,7 +742,7 @@ input:-webkit-autofill:focus {
         font-size:0.9em;
     }
     .sidebar:hover {
-        width: 140px;
+        width: 190px;
     }
     .main_header {
         margin-top: 5px;
@@ -763,9 +763,9 @@ input:-webkit-autofill:focus {
     .countdown {
         margin-top: -80px;
     }
-    #sidebar-item2,
-    #sidebar-item3 {
-        white-space: wrap;
+    #item-text5,
+    #item-text6 {
+        margin-left: 20px
     }
     #item-text2 {
         margin-left: 0px;

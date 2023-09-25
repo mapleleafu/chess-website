@@ -6,7 +6,6 @@ from django.urls import reverse
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.password_validation import validate_password
-from email_validator import validate_email, EmailNotValidError
 from django.core.exceptions import ValidationError
 import json
 import random
@@ -16,6 +15,13 @@ from .models import User, ChessGame, PlayedGame
 
 def home(request):
     # return redirect(request, "chess_content/memory_rush.html")
+    message = request.session.get('message', None)
+    message_type = request.session.get('message_type', None)
+
+    if message: 
+        del request.session['message']
+    if message_type:
+        del request.session['message_type']
     return HttpResponseRedirect(reverse("memory_rush"))
 
 def game_history(request):
@@ -279,7 +285,6 @@ def logout_view(request):
 def register(request):
     if request.method == "POST":
         username = request.POST["username"]
-        email = request.POST["email"]
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         try:
@@ -287,17 +292,12 @@ def register(request):
         except ValidationError as e:
             messages.error(request, str(e))
             return HttpResponseRedirect(reverse('register'))
-        try:
-            validate_email(email)
-        except EmailNotValidError as e:
-            messages.error(request, str(e))
-            return HttpResponseRedirect(reverse('register'))
         
         if password != confirmation:
             messages.error(request, "Passwords must match.")
             return HttpResponseRedirect(reverse('register'))
         try:
-            user = User.objects.create_user(username, email, password)
+            user = User.objects.create_user(username=username, password=password)
             user.save()
         except IntegrityError:
             messages.error(request, "Username already taken.")

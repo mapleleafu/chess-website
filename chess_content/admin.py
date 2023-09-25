@@ -25,7 +25,7 @@ class ChessGameBatchAdmin(admin.ModelAdmin):
 # For display purposes inside the PlayedGame module
 class PlayedGameAdmin(admin.ModelAdmin):
     list_display = ('user', 'chess_game', 'get_status_display', 'chosenDifficulty', 'played_at',)
-    list_filter = ('user', 'success', 'chess_game', 'played_at')
+    list_filter = ('user', 'success', 'played_at')
     search_fields = ('user__username', 'chess_game__fen_string')
 
     def get_status_display(self, obj):

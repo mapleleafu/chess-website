@@ -42,7 +42,66 @@ document.addEventListener("DOMContentLoaded", () => {
             toggleButton.textContent = newestFirst ? "Oldest" : "Newest";
         });
     }
+    showMessageOnLoad();
 });
+
+function showMessageOnLoad() {
+    const errorInfoStr = localStorage.getItem("errorInfo");
+    let errorMessage = null;
+    let errorMessageSecond = null;
+
+    if (errorInfoStr) {
+        const errorInfo = JSON.parse(errorInfoStr);
+        errorMessage = errorInfo.message;
+        errorMessageSecond = errorInfo.countdownNumber;
+    } else {
+        errorMessage = localStorage.getItem("errorMessage");
+    }
+
+    const successMessage = localStorage.getItem("successMessage");
+
+    if (errorMessage) {
+        displayErrorMessage(errorMessage, errorMessageSecond);
+        localStorage.removeItem("errorMessage");
+        localStorage.removeItem("errorInfo");
+    }
+
+    if (successMessage) {
+        displaySuccessMessage();
+        localStorage.removeItem("successMessage");
+    }
+}
+
+function displayErrorMessage(errorMessage, errorMessageSecond, removeAfterTimeout) {
+    if (!errorMessage) return;
+
+    const messagesDiv = document.querySelector(".message_container");
+
+    messagesDiv.style.display = "flex";
+    messagesDiv.classList.add("messages");
+    messagesDiv.innerHTML = `<li class="error">${errorMessage}</li>`;
+    messagesDiv.style.display = "flex";
+
+    if (removeAfterTimeout) {
+        setTimeout(() => {
+            messagesDiv.innerHTML = "";
+        }, errorMessageSecond * 1000);
+    }
+} 
+
+function displaySuccessMessage() {
+    const message = localStorage.getItem("successMessage");
+    if (!message) return;
+
+    const messagesDiv = document.querySelector(".message_container");
+
+    messagesDiv.style.display = "flex";
+    messagesDiv.classList.add("messages");
+    messagesDiv.innerHTML = `<li class="success">${message}</li>`;
+    messagesDiv.style.display = "flex";
+
+    localStorage.removeItem("successMessage");
+}
 
 function randomFEN() {
     const pieces = ['p', 'r', 'n', 'b', 'q', 'k', 'P', 'R', 'N', 'B', 'Q', 'K'];

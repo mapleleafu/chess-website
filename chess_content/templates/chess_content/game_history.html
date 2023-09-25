@@ -6,6 +6,15 @@
 {% block body %}
     <script src="{% static 'chess_content/game_history.js' %}" defer></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <div class="message_container">
+        {% if message %}
+            <div class="messages">
+            <li class="{{ message_type }}">
+                {{ message }}
+            </li>
+            </div>
+        {% endif %}
+    </div>
     <div class="header-container">
         {% if fen_data %}
             <h1 class="main_header">Played Games</h1>

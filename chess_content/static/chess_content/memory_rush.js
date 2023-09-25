@@ -108,6 +108,10 @@ async function videoFunct(event) {
     }
     const data = await response.json();
     if (data) {
+        var successMessage = document.querySelector(".messages .success");
+        if (successMessage) {
+            successMessage.remove();
+        }        
         chosenDifficultyCountdownNumber = data.countdown;
         chosenDifficultyRoundNumber = data.round;
         randomFEN = data.random_FEN;
@@ -189,7 +193,11 @@ function startGame(chosenDifficultyCountdownNumber) {
     var element = document.querySelector(".welcome_page");
     element.parentNode.removeChild(element);
 
-    document.querySelector(".message_container").style.display = "none";
+    var messageContainer = document.querySelector(".message_container");
+    if (messageContainer) {
+      messageContainer.style.display = "none";
+    }
+    
 
     // Adding memory rush's page
     document.querySelector(".main_wrapper").style.display = "flex";
@@ -247,6 +255,7 @@ function countdownEndPlacementStart() {
     document.querySelector(
         ".p1.tries"
     ).innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
+    document.querySelector(".message_container").style.display = "flex";
 
     // Making sure that startPositionFunct works properly by putting down a piece once
     if (gameOnFlag === false) {
@@ -305,7 +314,7 @@ function submitFunct() {
     }).then((response) => {
         if (response.status === 200) {
             localStorage.setItem("successMessage", "Matched the memory!");
-            location.reload();
+            window.location.href = "/game_history";
         } else if (response.status === 400) {
             const errorInfo = {
                 message: "Pieces Not Correct",
@@ -326,10 +335,8 @@ function submitFunct() {
                 removeAfterTimeout: false,
             };
             localStorage.setItem("errorInfo", JSON.stringify(errorInfo));
-            gameOnFlag = false;
-            errorCount = 0;
-            location.reload();
-        }
+            window.location.href = "/game_history";
+        }        
     });
 }
 
@@ -405,6 +412,8 @@ function displayErrorMessage(errorMessage, errorMessageSecond, removeAfterTimeou
     if (!errorMessage) return;
 
     const messagesDiv = document.querySelector(".message_container");
+
+    messagesDiv.style.display = "flex";
     messagesDiv.classList.add("messages");
     messagesDiv.innerHTML = `<li class="error">${errorMessage}</li>`;
     messagesDiv.style.display = "flex";
@@ -421,13 +430,14 @@ function displaySuccessMessage() {
     if (!message) return;
 
     const messagesDiv = document.querySelector(".message_container");
+
+    messagesDiv.style.display = "flex";
     messagesDiv.classList.add("messages");
     messagesDiv.innerHTML = `<li class="success">${message}</li>`;
     messagesDiv.style.display = "flex";
 
     localStorage.removeItem("successMessage");
 }
-
 
 window.addEventListener("load", showMessageOnLoad);
 

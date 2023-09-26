@@ -1,0 +1,8 @@
+secret_key: "secret"  # Indicating that you'll use an environment variable for the actual value
+csrf_cookie_domain: "domain.com"
+csrf_trusted_origins:
+  - "domain.com"
+  - "www.domain.com"
+session_cookie_secure: True
+csrf_cookie_secure: True
+environment: "development"

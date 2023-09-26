@@ -76,7 +76,7 @@ let randomFEN,
     chosenDifficulty,
     chosenDifficultyRoundNumber,
     viewportWidth,
-    mobileView = false,
+    mobileView,
     try_count;
 errorCount = 0;
 
@@ -117,10 +117,6 @@ async function videoFunct(event) {
         randomFEN = data.random_FEN;
         if (data.error_count) errorCount = data.error_count;
     }
-    // Convert the random FEN to a board and place the pieces
-    boardFromFEN = fenToBoard(randomFEN);
-    placePiecesUsingFen(boardFromFEN);
-    try_count = chosenDifficultyRoundNumber - errorCount;
 
     viewportWidth = window.innerWidth;
 
@@ -135,6 +131,12 @@ async function videoFunct(event) {
         const topsidebar = document.querySelector(".top-sidebar");
         topsidebar.style.visibility = "visible";
     }
+
+    // Convert the random FEN to a board and place the pieces
+    boardFromFEN = fenToBoard(randomFEN);
+    placePiecesUsingFen(boardFromFEN);
+    try_count = chosenDifficultyRoundNumber - errorCount;
+
     startGame(chosenDifficultyCountdownNumber);
 }
 
@@ -198,7 +200,6 @@ function startGame(chosenDifficultyCountdownNumber) {
       messageContainer.style.display = "none";
     }
     
-
     // Adding memory rush's page
     document.querySelector(".main_wrapper").style.display = "flex";
 
@@ -374,7 +375,6 @@ function gameIsNotOver() {
 
     // Set up the original position
     clearFunct();
-    boardFromFEN = fenToBoard(randomFEN);
     placePiecesUsingFen(boardFromFEN);
 
     // Start the countdown
@@ -449,10 +449,8 @@ function placePiecesUsingFen(board) {
     const boardContainer = document.querySelector(".duplicate_piece_container");
 
     // Declare viewport dimensions
-    const viewportWidth = window.innerWidth;
     let squareWidth, squareHeight;
-
-    if (viewportWidth <= 450) {
+    if (mobileView === true) {
         squareWidth = 50;
         squareHeight = 50;
     } else {

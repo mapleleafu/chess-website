@@ -313,8 +313,9 @@ input:-webkit-autofill:focus {
     display: flex;
     flex-direction: column;
     align-items: center; 
-    justify-content: center;
     margin-left: 60px;
+    overflow: auto;
+    height: 100vh;
 }
 
 .memory_board, .memory_board * {
@@ -792,5 +793,9 @@ input:-webkit-autofill:focus {
     }
     .btn.register {
         width: 100%;
+    }
+    .content-container {
+        overflow: visible;
+        height: auto;
     }
 }

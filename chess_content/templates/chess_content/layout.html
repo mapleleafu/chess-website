@@ -9,13 +9,14 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link href="{% static 'chess_content/styles.css' %}" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link rel="icon" href="{% static 'chess_content/assets/favicon.png' %}" type="image/png">
     </head>
     <body>
         <div class="top-sidebar">
-            <div class="sidebar-item">
+            <!-- <div class="sidebar-item">
                 <img src="static/chess_content/assets/home_icon.png" alt="home">
                 <a href="{% url 'home' %}" class="item-text">Home</a>
-            </div>
+            </div> -->
             <div class="sidebar-item">
                 <img src="static/chess_content/assets/memory_icon.png" alt="memory_rush">
                 <a href="{% url 'memory_rush' %}" class="item-text">Memory Rush</a>
@@ -41,12 +42,12 @@
         </div>
         <div class="page-container">
             <div class="sidebar">
-                <div class="sidebar-item one" id="sidebar-item1">
+                <!-- <div class="sidebar-item one" id="sidebar-item1">
                     <a href="{% url 'home' %}">
                         <img src="static/chess_content/assets/home_icon.png" alt="home" class="bar-images">
                         <span class="item-text" id="item-text1">Home</span>
                     </a>
-                </div>
+                </div> -->
                 <div class="sidebar-item" id="sidebar-item2">
                     <a href="{% url 'memory_rush' %}">
                         <img src="static/chess_content/assets/memory_icon.png" alt="memory_rush" class="bar-images">

@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import yaml
+
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,13 +24,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-bu++9u*xg6xtsvs_t5&@v@0m$7i5ya*^s^)x+7**0)$dimrm^y'
+with open("config.yaml", 'r') as stream:
+    config = yaml.safe_load(stream)
 
+
+environment = config.get('environment', 'development')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True if environment == 'development' else False
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = config.get('secret_key')
+
+# Other settings
+CSRF_COOKIE_DOMAIN = config.get('csrf_cookie_domain')
+CSRF_TRUSTED_ORIGINS = config.get('csrf_trusted_origins', [])
+SESSION_COOKIE_SECURE = config.get('session_cookie_secure', False)
+CSRF_COOKIE_SECURE = config.get('csrf_cookie_secure', False)
+ALLOWED_HOSTS = config.get('allowed_hosts', [])
 
 AUTH_USER_MODEL = 'chess_content.User'
 # Application definition

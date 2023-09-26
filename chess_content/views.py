@@ -164,8 +164,8 @@ def put_submit_game(request):
             piece_name = piece_info['name']
             left = piece_info['left']
             top = piece_info['top']
-            mobileView = piece_info['mobileView']
-            square = position_to_square(left, top, mobileView)
+            mobile_view = piece_info['mobileView']
+            square = position_to_square(left, top, mobile_view)
             transformed_data.append({'name': piece_name, 'square': square})
 
         fen_position_sorted = fen_to_board(fen_str)

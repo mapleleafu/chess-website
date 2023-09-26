@@ -2,7 +2,6 @@ db.sqlite3
 __pycache__/
 chess_website/__pycache__/
 chess_content/migrations/__pycache__
-chess_website/settings.py
 bs-config.js
 config.yaml
 .idea/

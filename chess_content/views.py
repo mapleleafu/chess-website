@@ -249,10 +249,10 @@ def fen_to_board(fen):
                 
     return board
 
-def position_to_square(left, top, mobileView):
-    if (mobileView == True):
+def position_to_square(left, top, mobile_view):
+    if (mobile_view == True):
         pieceSize = 50
-    elif (mobileView == False):
+    elif (mobile_view == False):
         pieceSize = 90
     # Calculate the column (letter) based on the left position
     column = chr(ord('a') + (left // pieceSize))

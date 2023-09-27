@@ -76,7 +76,7 @@ let randomFEN,
     chosenDifficulty,
     chosenDifficultyRoundNumber,
     viewportWidth,
-    mobileView,
+    mobileView = false,
     try_count;
 errorCount = 0;
 

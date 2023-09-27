@@ -133,7 +133,6 @@ def post_start_game(request):
             'error_count': error_for_json
         })
 
-@csrf_exempt
 def put_submit_game(request):
     if request.method == 'PUT':
         user = request.user

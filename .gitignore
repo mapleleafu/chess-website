@@ -6,3 +6,5 @@ bs-config.js
 config.yaml
 .idea/
 venv/
+bs-config.js
+db.sqlite3

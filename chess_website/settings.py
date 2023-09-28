@@ -45,6 +45,27 @@ ALLOWED_HOSTS = config.get('allowed_hosts', [])
 AUTH_USER_MODEL = 'chess_content.User'
 # Application definition
 
+CORS_ALLOW_METHODS = [
+'DELETE',
+'GET',
+'OPTIONS',
+'PATCH',
+'POST',
+'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 INSTALLED_APPS = [
     'chess_content',
     'django.contrib.admin',

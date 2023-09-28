@@ -43,7 +43,6 @@ def game_history(request):
     return render(request, "chess_content/game_history.html", 
                   {'fen_data': fen_data})
 
-@csrf_exempt
 def memory_rush(request):
     white_piece_filenames = ['wk.png', 'wq.png', 'wr.png', 'wb.png', 'wn.png', 'wp.png']
     black_piece_filenames=  ['bk.png', 'bq.png', 'br.png', 'bb.png', 'bn.png', 'bp.png']
@@ -71,7 +70,6 @@ DIFFICULTIES = {
     'hard': {'countdown': 3, 'round': 3},
 }
 
-@csrf_exempt
 def post_start_game(request):
     if request.method == 'POST':
         if not request.user.is_authenticated:

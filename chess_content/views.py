@@ -70,6 +70,7 @@ DIFFICULTIES = {
     'hard': {'countdown': 3, 'round': 3},
 }
 
+@csrf_exempt
 def post_start_game(request):
     if request.method == 'POST':
         if not request.user.is_authenticated:
@@ -135,8 +136,6 @@ def put_submit_game(request):
     if request.method == 'PUT':
         user = request.user
         data = json.loads(request.body.decode('utf-8'))
-        print("Request body: ", request.body)
-        print("Data: ", data)
         pieces_by_user = data['piecesByUser']
         chosenDifficulty = data['chosenDifficulty']
 
@@ -173,9 +172,6 @@ def put_submit_game(request):
         
         # Sort fen_position_sorted before comparison
         fen_position_sorted = sorted(fen_position_sorted, key=lambda x: (x['square'], x['name']))
-        print(ongoing_game)
-        print(fen_position_sorted)
-        print(transformed_data_sorted)
         # If the user piece positions are correct
         if fen_position_sorted == transformed_data_sorted:
             ongoing_game.success = True
@@ -204,8 +200,6 @@ def put_submit_game(request):
                 if 'game_fen' in request.session:
                     del request.session['game_fen']
                 return HttpResponse(status=400)
-    else: 
-        print("It did not get the PUT request")
 
 def fen_to_board(fen):
     board_str, to_move, castling, en_passant, halfmove, fullmove = fen.split(' ')

@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser, Group, Permission
 
 
@@ -56,3 +55,16 @@ class PlayedGame(models.Model):
 
     def __str__(self):
         return f"User: {self.user.username}, Game: {self.chess_game.fen_string}, Status: {self.get_status()}, Difficulty: {self.chosenDifficulty}"
+
+class AttemptHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    played_game = models.ForeignKey(PlayedGame, related_name='attempts', on_delete=models.CASCADE)
+    fen_string = models.CharField(max_length=100)
+    game_is_on = models.BooleanField(default=False)
+    played_at = models.DateTimeField(auto_now_add=True)
+    total_round_number =  models.IntegerField(null=True, blank=True)
+    chosenDifficulty = models.CharField(max_length=100, blank=True)
+    round_data = models.JSONField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.played_game}"

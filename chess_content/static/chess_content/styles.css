@@ -70,6 +70,11 @@ body::before {
     margin-left: -6px; 
 }
 
+#sidebar-item6 img {
+    width: 60px;
+    height: 60px;
+}
+
 .sidebar-item img {
     width: 70px;
     height: 70px;
@@ -86,6 +91,10 @@ body::before {
 #item-text4,
 #item-text5 {
     margin-left: 7px; 
+}
+
+#item-text6 {
+    margin-left: 12px; 
 }
 
 .item-text:hover {
@@ -395,6 +404,7 @@ input:-webkit-autofill:focus {
     border-radius: 10px;
     transform: scaleX(1.09);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
     background-color: #17862673;
 }
 
@@ -484,12 +494,11 @@ input:-webkit-autofill:focus {
 
 .game_info {
     margin: 0;
-    padding: 4px 28px;
+    padding: 4px 5px;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(10px);
     display: flex;
     justify-content: space-evenly;
-    gap: 6px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
     width: 100%;
@@ -499,8 +508,8 @@ input:-webkit-autofill:focus {
 
 .game_info div {
     border-radius: 4px;
-    padding: 4px 6px;
-    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 4px;
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .game_info .copy .fa-clipboard {
@@ -517,7 +526,7 @@ input:-webkit-autofill:focus {
     right: 0;
     margin: 0;
     padding: 0;
-    background: #000000cc;
+    background: #000000cb;
     height: 24px;
     width: 24px;
     transition: background 0.3s ease;
@@ -630,6 +639,10 @@ input:-webkit-autofill:focus {
     border-radius: 5px;
 }
 
+.hover-play-video:hover {
+    cursor: pointer;
+}
+
 .icon-text-wrapper {
     display: flex;
     align-items: center;
@@ -676,6 +689,22 @@ input:-webkit-autofill:focus {
     filter: blur(6px);
     box-shadow: none;
 }
+
+.attempt_icon img {
+    height: 30px;
+    width: 30px;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.attempt_icon:hover {
+    cursor: pointer;
+}
+
+.shift-left {
+    margin-left: -18px;
+}
+
 .board_wrapper {
     overflow: hidden;
 }
@@ -760,15 +789,22 @@ input:-webkit-autofill:focus {
         width: 70px;
         height: 70px;
     }
+    .github-item a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
     .countdown {
         margin-top: -80px;
     }
-    #item-text5,
-    #item-text6 {
+    #item-text5 {
         margin-left: 20px
     }
+    #item-text6 {
+        margin-left: 12px; 
+    }
     #item-text2 {
-        margin-left: 0px;
+        margin-left: 7px;
     }
     .p1.tries {
         font-size: larger;
@@ -797,5 +833,8 @@ input:-webkit-autofill:focus {
     .content-container {
         overflow: visible;
         height: auto;
+    }
+    .btn.submit {
+        padding: 0px 0px;
     }
 }

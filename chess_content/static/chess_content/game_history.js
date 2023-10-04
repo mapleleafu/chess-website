@@ -42,6 +42,13 @@ document.addEventListener("DOMContentLoaded", () => {
             toggleButton.textContent = newestFirst ? "Oldest" : "Newest";
         });
     }
+
+    document.querySelectorAll(".attempt_icon").forEach(element => {
+        element.addEventListener("click", () => {
+          console.log("clicked");  
+        });
+    });
+
     showMessageOnLoad();
 });
 
@@ -111,7 +118,7 @@ function randomFEN() {
       let empty = 0;
   
       for (let col = 0; col < 8; col++) {
-        if (Math.random() > 0.7) { // Adjust probability as you like
+        if (Math.random() > 0.7) { 
           if (empty > 0) {
             fen += empty;
             empty = 0;
@@ -132,7 +139,7 @@ function randomFEN() {
       }
     }
   
-    fen += " w KQkq - 0 1"; // Adding some default values for the rest of the FEN parts
+    fen += " w KQkq - 0 1"; 
     return fen;
   }
 
@@ -197,24 +204,18 @@ function fenToBoard(fen) {
     if (!fen) {
         return;
     }
-    // Split the FEN string into its components: board, turn, castling, etc.
     const [fenBoard] = fen.split(" ");
 
-    // Split the board part of the FEN string into ranks.
     const fenRanks = fenBoard.split("/");
 
-    // Initialize an empty board.
     const board = [];
 
-    // Loop through each rank in the FEN string.
     for (const fenRank of fenRanks) {
         const rank = [];
         for (const char of fenRank) {
             if (isNaN(char)) {
-                // If the character is not a number, it represents a piece.
                 rank.push(char);
             } else {
-                // If the character is a number, it represents empty squares.
                 const emptySquares = parseInt(char, 10);
                 for (let i = 0; i < emptySquares; i++) {
                     rank.push(null);
@@ -262,5 +263,14 @@ $(document).ready(function() {
             $(this).find('.fa-check').hide();
             $(this).find('.fa-clipboard').show();
         }, 3000);
+    });
+});
+
+// Add 'shift-left' to child divs in '.game_info' with '✅', excluding '.copy'
+$(document).ready(function() {
+    $(".game_info").each(function() {
+        if ($(this).find("div:contains('✅')").length > 0) {
+            $(this).find("div").not('.copy').addClass("shift-left");
+        }
     });
 });

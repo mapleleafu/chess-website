@@ -7,10 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Attach mouseenter and click events to cursor
     document.querySelectorAll(".cursor").forEach((cursor) => {
-        cursor.addEventListener(
-            "mouseenter",
-            () => (cursor.style.cursor = "pointer")
-        );
         cursor.addEventListener("click", cursorFunct);
     });
 
@@ -29,10 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll(".hover-play-video").forEach((video) => {
         video.addEventListener("click", videoFunct);
-        video.addEventListener(
-            "mouseenter",
-            () => (video.style.cursor = "pointer")
-        );
         video.setAttribute("data-played", "false"); // Initialize each video as not played
     });
 

@@ -9,8 +9,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 import json
 import random
+import datetime
 
-from .models import User, ChessGame, PlayedGame
+from .models import User, ChessGame, PlayedGame, AttemptHistory
 
 
 def home(request):
@@ -125,6 +126,19 @@ def post_start_game(request):
             ongoing_game.game_is_on = False
             ongoing_game.save()
 
+        # Fetch existing or create new AttemptHistory record
+        AttemptHistory.objects.get_or_create(
+            user=user,
+            played_game=ongoing_game,
+            defaults={
+                'fen_string': random_FEN,
+                'game_is_on': True,
+                'total_round_number': ongoing_game.round_number,
+                'chosenDifficulty': chosenDifficulty,
+                'round_data': []
+            }
+        )
+
         return JsonResponse({
             'countdown': countdown,
             'round': round_number,
@@ -159,6 +173,12 @@ def put_submit_game(request):
 
         transformed_data = []
 
+        # Fetch the corresponding AttemptHistory record for ongoing_game
+        attempt_history = AttemptHistory.objects.get(
+            user=user,
+            played_game=ongoing_game
+        )
+
         for piece_info in pieces_by_user:
             piece_name = piece_info['name']
             left = piece_info['left']
@@ -169,15 +189,32 @@ def put_submit_game(request):
 
         fen_position_sorted = fen_to_board(fen_str)
         transformed_data_sorted = sorted(transformed_data, key=lambda x: (x['square'], x['name']))
-        
         # Sort fen_position_sorted before comparison
         fen_position_sorted = sorted(fen_position_sorted, key=lambda x: (x['square'], x['name']))
+
+        # Add the new round data to the round_data list
+        new_round_data = {
+            'round_number': ongoing_game.error_count + 1,
+            'fen_string': list_to_fen(transformed_data_sorted), 
+            'played_at': datetime.datetime.now().strftime('%H:%M %d-%m')
+        }
+
+        if attempt_history.round_data is None:
+            attempt_history.round_data = []
+
+        attempt_history.round_data.append(new_round_data)
+        attempt_history.save()
+
         # If the user piece positions are correct
         if fen_position_sorted == transformed_data_sorted:
             ongoing_game.success = True
             ongoing_game.game_is_on = False
             ongoing_game.gotCorrectRoundNumber = error_count + 1
             ongoing_game.save()
+
+            attempt_history.game_is_on = False
+            attempt_history.save()
+
             if 'game_fen' in request.session:
                 del request.session['game_fen']
             return HttpResponseRedirect(reverse("memory_rush"))
@@ -188,6 +225,10 @@ def put_submit_game(request):
                 ongoing_game.game_is_on = False
                 ongoing_game.error_count = error_count + 1
                 ongoing_game.save()
+
+                attempt_history.game_is_on = False
+                attempt_history.save()
+
                 if 'game_fen' in request.session:
                     del request.session['game_fen']
                 return HttpResponse(status=403)
@@ -200,6 +241,53 @@ def put_submit_game(request):
                 if 'game_fen' in request.session:
                     del request.session['game_fen']
                 return HttpResponse(status=400)
+
+def list_to_fen(input_list):
+    board = [[" " for _ in range(8)] for _ in range(8)]
+    
+    fen_map = {
+        'br.png': 'r',
+        'bn.png': 'n', 
+        'bb.png': 'b', 
+        'bq.png': 'q', 
+        'bk.png': 'k', 
+        'bp.png': 'p', 
+
+        'wr.png': 'R', 
+        'wn.png': 'N', 
+        'wb.png': 'B', 
+        'wq.png': 'Q', 
+        'wk.png': 'K', 
+        'wp.png': 'P'  
+    }
+    
+    for piece in input_list:
+        col, row = ord(piece['square'][0]) - ord('a'), int(piece['square'][1]) - 1
+        board[8 - row - 1][col] = fen_map[piece['name']]
+    
+    fen_rows = []
+    for row in board:
+        empty_count = 0
+        fen_row = ""
+        for square in row:
+            if square == " ":
+                empty_count += 1
+            else:
+                if empty_count > 0:
+                    fen_row += str(empty_count)
+                fen_row += square
+                empty_count = 0
+        
+        if empty_count > 0:
+            fen_row += str(empty_count)
+        
+        fen_rows.append(fen_row)
+    
+    fen_code = "/".join(fen_rows)
+    
+    fen_code += " w - - 0 1"
+    
+    return fen_code
 
 def fen_to_board(fen):
     board_str, to_move, castling, en_passant, halfmove, fullmove = fen.split(' ')

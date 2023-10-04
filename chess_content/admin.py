@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, ChessGame, ChessGameBatch, PlayedGame
+from .models import User, ChessGame, ChessGameBatch, PlayedGame, AttemptHistory
 
 class ChessGameBatchForm(forms.ModelForm):
     fen_strings = forms.CharField(widget=forms.Textarea, required=False)
@@ -45,3 +45,4 @@ admin.site.register(User, CustomUserAdmin)
 admin.site.register(ChessGameBatch, ChessGameBatchAdmin)
 admin.site.register(ChessGame)
 admin.site.register(PlayedGame, PlayedGameAdmin)
+admin.site.register(AttemptHistory)

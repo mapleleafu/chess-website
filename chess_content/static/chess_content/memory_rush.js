@@ -708,10 +708,10 @@ function choosePiece(event) {
 
     // Clone and modify the clicked piece to make it the active piece
     activePiece = clickedPiece.cloneNode(true);
-
+    
     // Determine the width and height based on the viewport width (mobile/browser)
-    const pieceWidth = viewportWidth <= 450 ? "50px" : "90px";
-    const pieceHeight = viewportWidth <= 450 ? "50px" : "90px";
+    const pieceWidth = mobileView ? "50px" : "90px";
+    const pieceHeight = mobileView ? "50px" : "90px";    
 
     Object.assign(activePiece.style, {
         position: "absolute",
@@ -760,7 +760,7 @@ function choosePiece(event) {
         .addEventListener("click", placePiece);
 
     // If on mobile, activePiece is not visible on the cursor
-    if (viewportWidth <= 450) {
+    if (mobileView === true) {
         activePiece.remove();
     }
 }
@@ -806,7 +806,7 @@ function placePiece(event) {
         y = event.clientY;
 
     // Mobile piece placement logic
-    if (viewportWidth <= 450) {
+    if (mobileView === true) {
         squareWidth = 50;
         squareHeight = 50;
     } else {

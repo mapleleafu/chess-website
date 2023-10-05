@@ -21,17 +21,17 @@
                 <img src="static/chess_content/assets/memory_icon.png" alt="memory_rush">
                 <a href="{% url 'memory_rush' %}" class="item-text">Memory Rush</a>
             </div>
-            <div class="sidebar-item">
-                <img src="static/chess_content/assets/history_icon.png" alt="game_history">
+            <div class="sidebar-item history">
+                <img src="static/chess_content/assets/history_icon.png" alt="game_history" class="bar-images history-image">
                 <a href="{% url 'game_history' %}" class="item-text">Game History</a>
             </div>
             <div class="sidebar-item github-item">
-                <a href="https://github.com/mapleleafu/chess-website">
-                    <img src="static/chess_content/assets/github_icon.png" alt="github" class="bar-images">
+                <a href="https://github.com/mapleleafu/chess-website"  id="github-link">
+                    <img src="static/chess_content/assets/github_icon.png" alt="github" class="bar-images github-image">
                     <span class="item-text">Github</span>
                 </a>
-            </div>            
-            <div class="sidebar-item">
+            </div>
+            <div class="sidebar-item logout">
                 <img src="static/chess_content/assets/login_icon.png" alt="logout">
                 <a href="{% url 'logout' %}" class="item-text">Log Out</a>
             </div>

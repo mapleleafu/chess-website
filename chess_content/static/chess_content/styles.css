@@ -708,7 +708,7 @@ input:-webkit-autofill:focus {
 .board_wrapper {
     overflow: hidden;
 }
-  
+
 /* Mobile view */
 @media only screen and (max-width: 450px) {
     .hover-play-video {
@@ -789,6 +789,9 @@ input:-webkit-autofill:focus {
         width: 70px;
         height: 70px;
     }
+    .sidebar-item.history{
+        margin-top: -16px;
+    }
     .github-item a {
         display: flex;
         flex-direction: column;
@@ -836,5 +839,22 @@ input:-webkit-autofill:focus {
     }
     .btn.submit {
         padding: 0px 0px;
+    }
+    .bar-images.github-image {
+        width: 60px;
+        height: 60px;
+    }
+    .bar-images.history-image {
+        height: 4em;
+        margin-top: 20px;
+    }
+    .bar-images github-image {
+        margin-top: 10px;
+    }
+    .sidebar-item.logout {
+        margin-bottom: 5px;
+    }
+    #github-link {
+        gap: 8px;
     }
 }

@@ -14,25 +14,25 @@
     <body>
         <div class="top-sidebar">
             <!-- <div class="sidebar-item">
-                <img src="static/chess_content/assets/home_icon.png" alt="home">
+                <img src="static/chess_content/assets/layout_icons/home_icon.png" alt="home">
                 <a href="{% url 'home' %}" class="item-text">Home</a>
             </div> -->
             <div class="sidebar-item">
-                <img src="static/chess_content/assets/memory_icon.png" alt="memory_rush">
+                <img src="static/chess_content/assets/layout_icons/memory_icon.png" alt="memory_rush">
                 <a href="{% url 'memory_rush' %}" class="item-text">Memory Rush</a>
             </div>
             <div class="sidebar-item history">
-                <img src="static/chess_content/assets/history_icon.png" alt="game_history" class="bar-images history-image">
+                <img src="static/chess_content/assets/layout_icons/history_icon.png" alt="game_history" class="bar-images history-image">
                 <a href="{% url 'game_history' %}" class="item-text">Game History</a>
             </div>
             <div class="sidebar-item github-item">
                 <a href="https://github.com/mapleleafu/chess-website"  id="github-link">
-                    <img src="static/chess_content/assets/github_icon.png" alt="github" class="bar-images github-image">
+                    <img src="static/chess_content/assets/layout_icons/github_icon.png" alt="github" class="bar-images github-image">
                     <span class="item-text">Github</span>
                 </a>
             </div>
             <div class="sidebar-item logout">
-                <img src="static/chess_content/assets/login_icon.png" alt="logout">
+                <img src="static/chess_content/assets/layout_icons/login_icon.png" alt="logout">
                 <a href="{% url 'logout' %}" class="item-text">Log Out</a>
             </div>
         </div>
@@ -40,44 +40,44 @@
             <div class="sidebar">
                 <!-- <div class="sidebar-item one" id="sidebar-item1">
                     <a href="{% url 'home' %}">
-                        <img src="static/chess_content/assets/home_icon.png" alt="home" class="bar-images">
+                        <img src="static/chess_content/assets/layout_icons/home_icon.png" alt="home" class="bar-images">
                         <span class="item-text" id="item-text1">Home</span>
                     </a>
                 </div> -->
                 <div class="sidebar-item" id="sidebar-item2">
                     <a href="{% url 'memory_rush' %}">
-                        <img src="static/chess_content/assets/memory_icon.png" alt="memory_rush" class="bar-images">
+                        <img src="static/chess_content/assets/layout_icons/memory_icon.png" alt="memory_rush" class="bar-images">
                         <span class="item-text" id="item-text2">Memory Rush</span>
                     </a>
                 </div>
                 {% if user.is_authenticated %}
                 <div class="sidebar-item" id="sidebar-item3">
                     <a href="{% url 'game_history' %}">
-                        <img src="static/chess_content/assets/history_icon.png" alt="game_history">
+                        <img src="static/chess_content/assets/layout_icons/history_icon.png" alt="game_history">
                         <span class="item-text" id="item-text3">Game History</span>
                     </a>
                 </div>
                 <div class="sidebar-item" id="sidebar-item6">
                     <a href="https://github.com/mapleleafu/chess-website" target="_blank">
-                        <img src="static/chess_content/assets/github_icon.png" alt="github" class="bar-images">
+                        <img src="static/chess_content/assets/layout_icons/github_icon.png" alt="github" class="bar-images">
                         <span class="item-text" id="item-text6">Github</span>
                     </a>
                 </div>                
                 <div class="sidebar-item" id="sidebar-item4">
                     <a href="{% url 'logout' %}">
-                        <img src="static/chess_content/assets/login_icon.png" alt="logout" class="bar-images">
+                        <img src="static/chess_content/assets/layout_icons/login_icon.png" alt="logout" class="bar-images">
                         <span class="item-text" id="item-text4">Log Out</span>
                     </a>
                 </div>
                 {% else %}
                 <div class="sidebar-item" id="sidebar-item6">
                     <a href="https://github.com/mapleleafu/chess-website" target="_blank">
-                        <img src="static/chess_content/assets/github_icon.png" alt="github" class="bar-images">
+                        <img src="static/chess_content/assets/layout_icons/github_icon.png" alt="github" class="bar-images">
                         <span class="item-text" id="item-text6">Github</span>
                     </a>
                 </div>                
                 <div class="sidebar-item" id="sidebar-item5">
-                    <img src="static/chess_content/assets/login_icon.png" alt="login" class="bar-images">
+                    <img src="static/chess_content/assets/layout_icons/login_icon.png" alt="login" class="bar-images">
                     <div class="icon-text-wrapper">
                         <a href="{% url 'login' %}" class="item-text" id="item-text5">Login</a>
                         <a href="{% url 'register' %}" class="item-text" id="item-text6">Register</a>

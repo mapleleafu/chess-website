@@ -4,7 +4,7 @@ body {
     font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-image: 
       radial-gradient(#1d1b19 1px, #161512 1px),
-      linear-gradient(45deg, #ffffff1a 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.1) 75%, rgba(255, 255, 255, 0.1));
+      linear-gradient(45deg, #ffffff1a 25%, transparent 25%, transparent 75%, #ffffff1a 75%, rgba(255, 255, 255, 0.1));
     background-size: 40px 40px, 80px 80px;
     background-position: 0 0, 0 0;
 }
@@ -17,8 +17,8 @@ body::before {
     height: 100%;
     width: 100%;
     background: 
-      radial-gradient(circle at 20% 30%, #b3f4ff23, rgba(0, 0, 0, 0) 30%),
-      radial-gradient(circle at 85% 70%, #b3f4ff23, rgba(0, 0, 0, 0) 30%);
+      radial-gradient(circle at 20% 30%, #b3f4ff23, #00000000 30%),
+      radial-gradient(circle at 85% 70%, #b3f4ff23, #00000000 30%);
     pointer-events: none;
 }
 
@@ -530,7 +530,7 @@ input:-webkit-autofill:focus {
     height: 24px;
     width: 24px;
     transition: background 0.3s ease;
-    color: rgba(2, 130, 153, 0.568);
+    color: #028299a8;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -539,7 +539,7 @@ input:-webkit-autofill:focus {
 }
 
 .game_info .copy:hover {
-    background: rgba(0, 0, 0, 1);
+    background: #101718e8;
 }
 
 .game_info .copy:focus {
@@ -547,12 +547,12 @@ input:-webkit-autofill:focus {
 }
 
 .game_info .copy:hover::after {
-    content: 'Copy the FEN';
+    content: 'Copy FEN';
     position: absolute;
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: #000000a8;
     color: white;
     padding: 4px 8px;
     border-radius: 4px;
@@ -801,7 +801,7 @@ input:-webkit-autofill:focus {
         margin-top: -80px;
     }
     #item-text5 {
-        margin-left: 20px
+        margin-left: -6px
     }
     #item-text6 {
         margin-left: 12px; 

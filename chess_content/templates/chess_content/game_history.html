@@ -36,8 +36,8 @@
                         data-difficulty="{{ item.chosenDifficulty }}" 
                         data-is-on="{{ item.game_is_on }}" 
                         data-success="{{ item.success }}">
-                        <button class="copy">
-                            <i class="fas fa-clipboard fa-xs"></i>
+                        <button class="copy">                        
+                            <img src="{% static 'chess_content/assets/history_page_images/clipboard-solid.svg' %}" alt="Clipboard" class="fa-clipboard">
                             <i class="fas fa-check fa-xs"></i>
                         </button>
                         <div>
@@ -67,7 +67,7 @@
                             </div>
                         {% endif %}
                         <div title="{{ item.played_at|date:'l, F j, Y P' }}">{{ item.played_at|date:'d/m' }}</div>
-                        <div class="attempt_icon"><img src="static/chess_content/assets/attempt_icon.png"></div>
+                        <div class="attempt_icon"><img src="static/chess_content/assets/history_page_images/attempt_icon.png"></div>
                     </div>
                 </div>
             {% endfor %}

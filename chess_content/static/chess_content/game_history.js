@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Create and append the chessboard image to each game
         const img = document.createElement("img");
-        img.src = "static/chess_content/assets/board.png";
+        img.src = "static/chess_content/assets/memory_rush_items/board.svg";
         img.alt = "chess_board";
         img.width = 240;
         img.height = 240;
@@ -226,7 +226,6 @@ function fenToBoard(fen) {
     }
     return board;
 }
-
 
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(function() {

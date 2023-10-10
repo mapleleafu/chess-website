@@ -26,10 +26,18 @@ def home(request):
     return HttpResponseRedirect(reverse("memory_rush"))
 
 def game_history(request):
-    seen_games = PlayedGame.objects.filter(user=request.user).select_related('chess_game').order_by('-played_at')
+    seen_games = PlayedGame.objects.filter(user=request.user).select_related('chess_game').prefetch_related('attempts').order_by('-played_at')
 
-    fen_data = [
-        {
+    fen_data = []
+    for game in seen_games:
+        attempts = game.attempts.all()
+        attempts_data = [
+            {
+                'round_data': attempt.round_data
+            }
+            for attempt in attempts
+        ]
+        fen_data.append({
             'fen_string': game.chess_game.fen_string,
             'success': game.success,
             'played_at': game.played_at,
@@ -37,12 +45,30 @@ def game_history(request):
             'error_count': game.error_count,
             'gotCorrectRoundNumber': game.gotCorrectRoundNumber,
             'chosenDifficulty': game.chosenDifficulty,
-        }
-        for game in seen_games
-    ]
+            'attempts': attempts_data
+        })
+        
+    return render(request, "chess_content/game_history.html", {'fen_data': fen_data})
 
-    return render(request, "chess_content/game_history.html", 
-                  {'fen_data': fen_data})
+def get_attempt_history(request):
+    if request.method == 'GET':
+        user = request.user
+        fen_string = request.GET.get('fen_string', None)
+
+        # Retrieve the AttemptHistory record for the user and the fen_string
+        attempt_history = AttemptHistory.objects.filter(user=user, fen_string=fen_string).first()
+
+        if attempt_history:
+            return JsonResponse({
+                'round_data': attempt_history.round_data,
+                'total_round_number': attempt_history.total_round_number,
+                'game_is_on': attempt_history.game_is_on,
+                'chosenDifficulty': attempt_history.chosenDifficulty
+            })
+        else:
+            return JsonResponse({
+                'round_data': [],
+            })
 
 def memory_rush(request):
     white_piece_filenames = ['wk.png', 'wq.png', 'wr.png', 'wb.png', 'wn.png', 'wp.png']
@@ -127,7 +153,7 @@ def post_start_game(request):
             ongoing_game.save()
 
         # Fetch existing or create new AttemptHistory record
-        AttemptHistory.objects.get_or_create(
+        attempt_history, created = AttemptHistory.objects.get_or_create(
             user=user,
             played_game=ongoing_game,
             defaults={
@@ -138,6 +164,15 @@ def post_start_game(request):
                 'round_data': []
             }
         )
+
+        set_round_data = {
+            'round_number': ongoing_game.error_count,
+            'fen_string': "abandoned", 
+            'success': False,
+            'played_at': datetime.datetime.now().strftime('%H:%M %d-%m')
+        }
+        attempt_history.round_data.append(set_round_data)
+        attempt_history.save()
 
         return JsonResponse({
             'countdown': countdown,
@@ -189,6 +224,7 @@ def put_submit_game(request):
 
         fen_position_sorted = fen_to_board(fen_str)
         transformed_data_sorted = sorted(transformed_data, key=lambda x: (x['square'], x['name']))
+
         # Sort fen_position_sorted before comparison
         fen_position_sorted = sorted(fen_position_sorted, key=lambda x: (x['square'], x['name']))
 
@@ -199,10 +235,31 @@ def put_submit_game(request):
             'played_at': datetime.datetime.now().strftime('%H:%M %d-%m')
         }
 
-        if attempt_history.round_data is None:
-            attempt_history.round_data = []
+        # Initialize flag for existing round data
+        round_data_exists = False
 
-        attempt_history.round_data.append(new_round_data)
+        # Check if round_data exists
+        for existing_round in attempt_history.round_data:
+            if existing_round['round_number'] == ongoing_game.error_count + 1:
+                round_data_exists = True
+                if existing_round['fen_string'] == "abandoned":
+                    existing_round['fen_string'] = list_to_fen(transformed_data_sorted)
+                    existing_round['played_at'] = datetime.datetime.now().strftime('%H:%M %d-%m')
+                break
+
+        # If round data with this round number does not exist, append new one
+        if not round_data_exists:
+            new_round_data = {
+                'round_number': ongoing_game.error_count + 1,
+                'fen_string': list_to_fen(transformed_data_sorted),
+                'played_at': datetime.datetime.now().strftime('%H:%M %d-%m')
+            }
+
+            if attempt_history.round_data is None:
+                attempt_history.round_data = []
+
+            attempt_history.round_data.append(new_round_data)
+
         attempt_history.save()
 
         # If the user piece positions are correct
@@ -211,6 +268,12 @@ def put_submit_game(request):
             ongoing_game.game_is_on = False
             ongoing_game.gotCorrectRoundNumber = error_count + 1
             ongoing_game.save()
+
+            # Update success value for the current round in attempt_history
+            for existing_round in attempt_history.round_data:
+                if existing_round['round_number'] == ongoing_game.error_count + 1:
+                    existing_round['success'] = True
+                    break
 
             attempt_history.game_is_on = False
             attempt_history.save()
@@ -235,11 +298,13 @@ def put_submit_game(request):
             else:
             # If the user piece positions are wrong and still has tries left
                 ongoing_game.game_is_on = True
-                ongoing_game.success = False
                 ongoing_game.error_count = error_count + 1
                 ongoing_game.save()
                 if 'game_fen' in request.session:
                     del request.session['game_fen']
+
+                attempt_history.game_is_on = True
+                attempt_history.save()
                 return HttpResponse(status=400)
 
 def list_to_fen(input_list):

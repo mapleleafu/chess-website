@@ -67,10 +67,11 @@
                             </div>
                         {% endif %}
                         <div title="{{ item.played_at|date:'l, F j, Y P' }}">{{ item.played_at|date:'d/m' }}</div>
-                        <div class="attempt_icon"><img src="static/chess_content/assets/history_page_images/attempt_icon.png"></div>
+                        <div class="attempt_icon" id="{{ item.fen_string }}"><img src="static/chess_content/assets/history_page_images/attempt_icon.png"></div>
                     </div>
                 </div>
             {% endfor %}
         </div>
     </div>
+        <div class="modal-section"></div>
 {% endblock %}

@@ -7,8 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const img = document.createElement("img");
         img.src = "static/chess_content/assets/memory_rush_items/board.svg";
         img.alt = "chess_board";
-        img.width = 240;
-        img.height = 240;
+        const dimensionValues = 240;
+        img.width = dimensionValues;
+        img.height = dimensionValues;
         img.draggable = false;
         img.style.userSelect = 'none';
         img.style.webkitUserDrag = 'none';
@@ -25,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         // Convert FEN to board and place pieces
         const boardFromFEN = fenToBoard(fenData);
-        placePiecesFromFEN(boardFromFEN, pieceContainer);
+        placePiecesFromFEN(boardFromFEN, pieceContainer, dimensionValues);
     });
     
     let newestFirst = true;  // Initialize the variable to true
@@ -45,12 +46,119 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll(".attempt_icon").forEach(element => {
         element.addEventListener("click", () => {
-          console.log("clicked");  
+          openModal(element);
         });
     });
-
     showMessageOnLoad();
 });
+
+// Function to open the modal
+function openModal(element) {
+    fetch(`/get_attempt_history?fen_string=${encodeURIComponent(element.id)}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        loadModalContent(data);
+    })
+    .catch(error => {
+        console.log('Error:', error);
+    });
+
+    const modalSection = document.querySelector(".modal-section");
+    modalSection.style.display = "flex";
+
+    modalSection.addEventListener("click", () => {
+        hideModal();
+    });
+}
+
+
+function loadModalContent(data) {
+    hideModal();
+    console.log(data);
+    const modalSection = document.querySelector(".modal-section");
+    modalSection.style.display = "flex";
+
+    const innerModal = document.createElement("div");   
+    innerModal.classList.add("inner-modal");
+
+    const innerFlexContainer = document.createElement("div");
+    innerFlexContainer.classList.add("inner-flex-container");
+
+    innerModal.appendChild(innerFlexContainer);
+    
+    modalSection.appendChild(innerModal);
+
+    for (let i = 0; i < data.round_data.length; i++) {
+        const boardContainer = document.createElement("div");
+        boardContainer.classList.add("board_container");
+        boardContainer.classList.add("modal_board");
+
+        const img = document.createElement("img");
+        img.src = "static/chess_content/assets/memory_rush_items/board.svg";
+        img.alt = "history_chess_board";
+        const dimensionValues = 240;
+        img.width = dimensionValues;
+        img.height = dimensionValues;
+        img.draggable = false;
+        boardContainer.appendChild(img);
+
+        const pieceContainer = document.createElement("div");
+        pieceContainer.classList.add("piece_container");
+        pieceContainer.classList.add("modal_piece");
+        boardContainer.appendChild(pieceContainer);
+
+        const infoDiv = document.createElement("div");
+        // Add claslist info-section correct if success is true in datainfo, add info-section wrong if success is false
+        infoDiv.classList.add("info-section");
+        if (data.round_data[i].success) {
+            infoDiv.classList.add("info-section-correct");
+        } else if (data.round_data[i].fen_string === "abandoned") {
+            infoDiv.classList.add("info-section-abandoned");
+        } else {
+            infoDiv.classList.add("info-section-wrong");
+        }
+        const roundNumber = document.createElement("p");
+        roundNumber.innerText = `Round Number: ${data.round_data[i].round_number}`;
+        infoDiv.appendChild(roundNumber);
+        
+        const playedAt = document.createElement("p");
+        playedAt.innerText = `Played At: ${data.round_data[i].played_at}`;
+        infoDiv.appendChild(playedAt);
+
+        const boardWrapper = document.createElement("div");
+        boardWrapper.classList.add("board-wrapper");
+        boardWrapper.appendChild(boardContainer);
+        boardWrapper.appendChild(infoDiv);
+
+        innerFlexContainer.appendChild(boardWrapper);
+
+        // Prevent the modal from closing when clicking on the board
+        const boardWrappers = document.querySelectorAll(".board-wrapper");
+    
+        boardWrappers.forEach(wrapper => {
+            wrapper.addEventListener("click", (e) => {
+                e.stopPropagation();
+            });
+        });
+
+        const fenData = data.round_data[i].fen_string;
+        const boardFromFEN = fenToBoard(fenData);
+        placePiecesFromFEN(boardFromFEN, pieceContainer, dimensionValues);
+    }
+}
+
+function hideModal() {
+    const elements = document.querySelectorAll(".inner-modal");
+    for (let i = 0; i < elements.length; i++) {
+        elements[i].remove();
+    }
+    document.querySelector(".modal-section").style.display = "none";
+}
 
 function showMessageOnLoad() {
     const errorInfoStr = localStorage.getItem("errorInfo");
@@ -143,13 +251,13 @@ function randomFEN() {
     return fen;
   }
 
-function placePiecesFromFEN(board, pieceContainer) {
+function placePiecesFromFEN(board, pieceContainer, dimensionValues) {
     if (!board) {
         return;
     }
 
-    const squareWidth = 30;
-    const squareHeight = 30;
+    const squareWidth = dimensionValues / 8;
+    const squareHeight = dimensionValues / 8;
 
     // Mapping of FEN pieces to their image URLs
     const pieceToImage = {
@@ -201,7 +309,7 @@ function placePiecesFromFEN(board, pieceContainer) {
 }
 
 function fenToBoard(fen) {
-    if (!fen) {
+    if (!fen || fen === "abandoned") {
         return;
     }
     const [fenBoard] = fen.split(" ");

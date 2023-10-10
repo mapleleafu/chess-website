@@ -60,6 +60,7 @@ class AttemptHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     played_game = models.ForeignKey(PlayedGame, related_name='attempts', on_delete=models.CASCADE)
     fen_string = models.CharField(max_length=100)
+    success = models.BooleanField(default=False)
     game_is_on = models.BooleanField(default=False)
     played_at = models.DateTimeField(auto_now_add=True)
     total_round_number =  models.IntegerField(null=True, blank=True)

@@ -107,6 +107,11 @@ async function videoFunct(event) {
         chosenDifficultyCountdownNumber = data.countdown;
         chosenDifficultyRoundNumber = data.round;
         randomFEN = data.random_FEN;
+        
+        if (data.latest_attempt_fen) {
+            latest_attempt_fen = data.latest_attempt_fen
+        }
+
         if (data.error_count) errorCount = data.error_count;
     }
 
@@ -275,6 +280,12 @@ function countdownEndPlacementStart() {
         clearFunct();
         image.classList.remove("animate-background");
         image.style.backgroundColor = "";
+    }
+    
+    // If the user has a valid previous attempt, place the pieces on the board
+    if (latest_attempt_fen) {
+        userPlayingFEN = fenToBoard(latest_attempt_fen);
+        placePiecesUsingFen(userPlayingFEN);
     }
 }
 

@@ -79,7 +79,6 @@ function openModal(element) {
 
 function loadModalContent(data) {
     hideModal();
-    console.log(data);
     const modalSection = document.querySelector(".modal-section");
     modalSection.style.display = "flex";
 
@@ -119,16 +118,37 @@ function loadModalContent(data) {
             infoDiv.classList.add("info-section-correct");
         } else if (data.round_data[i].fen_string === "abandoned") {
             infoDiv.classList.add("info-section-abandoned");
+    
+            const abandonedText = document.createElement("div");
+            abandonedText.classList.add("abandoned-text");
+            abandonedText.innerText = "ABANDONED\n THE GAME";
+            boardContainer.appendChild(abandonedText);
         } else {
             infoDiv.classList.add("info-section-wrong");
         }
-        const roundNumber = document.createElement("p");
-        roundNumber.innerText = `Round Number: ${data.round_data[i].round_number}`;
-        infoDiv.appendChild(roundNumber);
         
+        const textContainer = document.createElement("div");
+        textContainer.classList.add("text-container");
+        infoDiv.appendChild(textContainer);
+
+        const roundNumber = document.createElement("p");
+        roundNumber.innerText = `Round ${data.round_data[i].round_number}`;
+        textContainer.appendChild(roundNumber);
+
         const playedAt = document.createElement("p");
-        playedAt.innerText = `Played At: ${data.round_data[i].played_at}`;
-        infoDiv.appendChild(playedAt);
+        const fullDateObj = new Date(data.round_data[i].played_at);
+        const shortDate = `${fullDateObj.getMonth() + 1}/${fullDateObj.getDate()}`;
+        
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
+        const longDate = `${fullDateObj.toLocaleDateString('en-US', dateOptions)} at ${fullDateObj.toLocaleTimeString('en-US', timeOptions)}`;
+        
+        playedAt.dataset.fullDate = longDate;
+        playedAt.innerText = shortDate;
+        playedAt.title = longDate;
+        textContainer.appendChild(playedAt);
+        
+        
 
         const boardWrapper = document.createElement("div");
         boardWrapper.classList.add("board-wrapper");

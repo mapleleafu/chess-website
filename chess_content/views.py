@@ -139,6 +139,21 @@ def post_start_game(request):
             random_FEN = ongoing_game.fen_str
             error_count = ongoing_game.error_count
 
+            # Fetch the corresponding AttemptHistory record for ongoing_game
+            attempt_history = AttemptHistory.objects.get(
+                user=user,
+                played_game=ongoing_game
+            )
+
+            # Initialize the variable to hold the latest fen_string that's not 'abandoned'
+            latest_attempt_fen = None
+
+            # Loop through the round_data list starting from the last element
+            for round_info in reversed(attempt_history.round_data):
+                if round_info['fen_string'] != 'abandoned':
+                    latest_attempt_fen = round_info['fen_string']
+                    break
+                
         error_for_json = error_count
         countdown = DIFFICULTIES.get(chosenDifficulty, {}).get('countdown', 'unknown')
         round_number = DIFFICULTIES.get(chosenDifficulty, {}).get('round', 'unknown')
@@ -169,17 +184,23 @@ def post_start_game(request):
             'round_number': ongoing_game.error_count,
             'fen_string': "abandoned", 
             'success': False,
-            'played_at': datetime.datetime.now().strftime('%H:%M %d-%m')
+            'played_at': datetime.datetime.now().strftime('%H:%M %d-%m-%y')
         }
         attempt_history.round_data.append(set_round_data)
         attempt_history.save()
 
-        return JsonResponse({
+        response_data = {
             'countdown': countdown,
             'round': round_number,
             'random_FEN': random_FEN,
             'error_count': error_for_json
-        })
+        }
+
+        if 'latest_attempt_fen' in locals():
+            response_data['latest_attempt_fen'] = latest_attempt_fen
+
+        return JsonResponse(response_data)
+
 
 def put_submit_game(request):
     if request.method == 'PUT':
@@ -232,7 +253,7 @@ def put_submit_game(request):
         new_round_data = {
             'round_number': ongoing_game.error_count + 1,
             'fen_string': list_to_fen(transformed_data_sorted), 
-            'played_at': datetime.datetime.now().strftime('%H:%M %d-%m')
+            'played_at': datetime.datetime.now().strftime('%H:%M %d-%m-%y')
         }
 
         # Initialize flag for existing round data
@@ -244,7 +265,7 @@ def put_submit_game(request):
                 round_data_exists = True
                 if existing_round['fen_string'] == "abandoned":
                     existing_round['fen_string'] = list_to_fen(transformed_data_sorted)
-                    existing_round['played_at'] = datetime.datetime.now().strftime('%H:%M %d-%m')
+                    existing_round['played_at'] = datetime.datetime.now().strftime('%H:%M %d-%m-%y')
                 break
 
         # If round data with this round number does not exist, append new one
@@ -252,7 +273,7 @@ def put_submit_game(request):
             new_round_data = {
                 'round_number': ongoing_game.error_count + 1,
                 'fen_string': list_to_fen(transformed_data_sorted),
-                'played_at': datetime.datetime.now().strftime('%H:%M %d-%m')
+                'played_at': datetime.datetime.now().strftime('%H:%M %d-%m-%y')
             }
 
             if attempt_history.round_data is None:

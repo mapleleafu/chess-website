@@ -638,6 +638,10 @@ input:-webkit-autofill:focus {
     background-image: linear-gradient(to left, #e7271d7e 0%, #d62c23ad 33%, #aa231cc0 66%, #9e231dc0 100%);
 }
 
+.game_info.no-hover::after {
+    content: none !important;
+}
+
 .hover-play-video {
     border-radius: 5px;
 }
@@ -705,6 +709,30 @@ input:-webkit-autofill:focus {
 .attempt_icon:hover {
     cursor: pointer;
 }
+
+.attempt_icon:hover::after {
+    content: 'Attempt History';
+    position: absolute;
+    top: 90%;
+    left: 80%;
+    transform: translateX(-50%);
+    background-color: #000000a8;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 12px;
+    z-index: 9999;
+}
+
+.spin {
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }  
 
 .shift-left {
     margin-left: -18px;
@@ -811,6 +839,12 @@ input:-webkit-autofill:focus {
     position: relative;
 }
 
+.touch-device .btn:hover {
+    background-image: none;
+    box-shadow: none;
+    transition: none;
+}
+
 /* Mobile view */
 @media only screen and (max-width: 450px) {
     .hover-play-video {
@@ -872,6 +906,9 @@ input:-webkit-autofill:focus {
         height: 80%;
         font-size:0.9em;
     }
+    .register-page .btn.register {
+        width: 100%;
+    }
     .sidebar:hover {
         width: 190px;
     }
@@ -932,9 +969,6 @@ input:-webkit-autofill:focus {
         left: 50%;
         transform: translate(-35%, -70%);
     }
-    .btn.register {
-        width: 100%;
-    }
     .content-container {
         overflow: visible;
         height: auto;
@@ -958,5 +992,11 @@ input:-webkit-autofill:focus {
     }
     #github-link {
         gap: 8px;
+    }
+}
+
+@media only screen and (max-width: 450px) {
+    body .btn.register {
+        width: 50%;
     }
 }

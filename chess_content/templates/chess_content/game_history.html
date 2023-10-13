@@ -6,7 +6,7 @@
 {% block body %}
     <script src="{% static 'chess_content/game_history.js' %}" defer></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <div class="message_container">
+    <div class="message_container game-history">
         {% if message %}
             <div class="messages">
             <li class="{{ message_type }}">
@@ -67,11 +67,12 @@
                             </div>
                         {% endif %}
                         <div title="{{ item.played_at|date:'l, F j, Y P' }}">{{ item.played_at|date:'d/m' }}</div>
-                        <div class="attempt_icon" id="{{ item.fen_string }}"><img src="static/chess_content/assets/history_page_images/attempt_icon.png"></div>
+                        <div class="attempt_icon" id="{{ item.fen_string }}" game_number="{{ forloop.counter }}"><img src="static/chess_content/assets/history_page_images/attempt_icon.png"></div>
                     </div>
                 </div>
             {% endfor %}
         </div>
     </div>
-        <div class="modal-section"></div>
+    <button id="loadMoreGames" class="btn register">More Games</button>
+    <div class="modal-section"></div>
 {% endblock %}

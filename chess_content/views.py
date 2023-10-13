@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import json
 import random
 import datetime
@@ -28,8 +29,21 @@ def home(request):
 def game_history(request):
     seen_games = PlayedGame.objects.filter(user=request.user).select_related('chess_game').prefetch_related('attempts').order_by('-played_at')
 
+    # Create a Paginator object
+    paginator = Paginator(seen_games, 12)  # Show 12 games per page
+
+    page = request.GET.get('page')
+    try:
+        games = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        games = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page of results.
+        games = paginator.page(paginator.num_pages)
+
     fen_data = []
-    for game in seen_games:
+    for game in games:
         attempts = game.attempts.all()
         attempts_data = [
             {
@@ -47,8 +61,8 @@ def game_history(request):
             'chosenDifficulty': game.chosenDifficulty,
             'attempts': attempts_data
         })
-        
-    return render(request, "chess_content/game_history.html", {'fen_data': fen_data})
+
+    return render(request, "chess_content/game_history.html", {'fen_data': fen_data, 'page': page})
 
 def get_attempt_history(request):
     if request.method == 'GET':

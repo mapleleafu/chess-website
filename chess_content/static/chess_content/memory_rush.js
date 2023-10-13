@@ -1,4 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Detect if the device is a touch device
+    if ('ontouchstart' in document.documentElement) {
+        document.body.classList.add('touch-device');
+    }
+    
     // Attaching click event to both chess_pieces and trash
     document.querySelectorAll(".chess_pieces, .trash").forEach((piece) => {
         piece.addEventListener("click", cursorDisable);
@@ -69,7 +74,8 @@ let randomFEN,
     chosenDifficultyRoundNumber,
     viewportWidth,
     mobileView = false,
-    try_count;
+    try_count,
+    latest_attempt_fen = null;
 errorCount = 0;
 
 async function videoFunct(event) {
@@ -281,11 +287,12 @@ function countdownEndPlacementStart() {
         image.classList.remove("animate-background");
         image.style.backgroundColor = "";
     }
-    
+
     // If the user has a valid previous attempt, place the pieces on the board
-    if (latest_attempt_fen) {
+    if (latest_attempt_fen != null) {
         userPlayingFEN = fenToBoard(latest_attempt_fen);
         placePiecesUsingFen(userPlayingFEN);
+        latest_attempt_fen = null;
     }
 }
 
@@ -317,7 +324,7 @@ function submitFunct() {
         }),
     }).then((response) => {
         if (response.status === 200) {
-            localStorage.setItem("successMessage", "Matched the memory!");
+            localStorage.setItem("successMessage", "Matched the memory!<br>Click to See Your Attempts.");
             window.location.href = "/game_history";
         } else if (response.status === 400) {
             const errorInfo = {
@@ -334,7 +341,7 @@ function submitFunct() {
             gameIsNotOver();
         } else if (response.status === 403) {
             const errorInfo = {
-                message: "Couldn't Match the Memory",
+                message: "Couldn't Match the Memory.<br>Click to See Your Attempts.",
                 countdownNumber: 1,
                 removeAfterTimeout: false,
             };

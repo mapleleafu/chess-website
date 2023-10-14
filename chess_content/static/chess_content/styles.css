@@ -178,7 +178,7 @@ button{
     position: absolute;
     margin-bottom: 10px;
     top: -19.5%;  
-    left: 50%;   
+    left: 46%;   
     transform: translateX(-50%) translateY(-100%);
     z-index: 9999;
     font-size: 5.5em;
@@ -920,6 +920,10 @@ input:-webkit-autofill:focus {
         justify-content: center;
         align-items: center;
         display: flex;
+    }
+    .memory_rush .error {
+        position: relative;
+        top: 80px;
     }
     .icon-text-wrapper {
         flex-direction: column;

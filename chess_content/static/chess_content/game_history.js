@@ -195,7 +195,9 @@ function loadModalContent(data) {
         const [time, date] = playedAtStr.split(" ");
         const [day, month, year] = date.split("-").map(Number);
         const [hour, minute] = time.split(":").map(Number);
-        const fullDateObj = new Date(2000 + year, month - 1, day, hour, minute);
+
+        // Showing correct time in the modal depending on user's timezone
+        const fullDateObj = new Date(Date.UTC(2000 + year, month - 1, day, hour, minute));
         const shortDate = `${fullDateObj.getDate()}/${fullDateObj.getMonth() + 1}`;
 
         const dateOptions = {

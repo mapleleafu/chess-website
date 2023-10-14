@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
+from django.db.models import Max
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -27,7 +28,11 @@ def home(request):
     return HttpResponseRedirect(reverse("memory_rush"))
 
 def game_history(request):
-    seen_games = PlayedGame.objects.filter(user=request.user).select_related('chess_game').prefetch_related('attempts').order_by('-played_at')
+    # Get the latest attempt for each game
+    latest_attempts = AttemptHistory.objects.filter(user=request.user).values('played_game').annotate(latest_played=Max('played_at'))
+
+    # Order the games by the latest attempt
+    seen_games = PlayedGame.objects.filter(user=request.user, id__in=[item['played_game'] for item in latest_attempts]).annotate(latest_played=Max('attempts__played_at')).order_by('-latest_played')
 
     # Create a Paginator object
     paginator = Paginator(seen_games, 12)  # Show 12 games per page
@@ -62,7 +67,9 @@ def game_history(request):
             'attempts': attempts_data
         })
 
-    return render(request, "chess_content/game_history.html", {'fen_data': fen_data, 'page': page})
+    more_games = seen_games.count() > 12
+    return render(request, "chess_content/game_history.html", {'fen_data': fen_data, 'page': page, 'more_games': more_games})
+
 
 def get_attempt_history(request):
     if request.method == 'GET':
@@ -201,6 +208,7 @@ def post_start_game(request):
             'played_at': datetime.datetime.now().strftime('%H:%M %d-%m-%y')
         }
         attempt_history.round_data.append(set_round_data)
+        attempt_history.played_at = datetime.datetime.now()
         attempt_history.save()
 
         response_data = {
@@ -295,6 +303,7 @@ def put_submit_game(request):
 
             attempt_history.round_data.append(new_round_data)
 
+        attempt_history.played_at = datetime.datetime.now()
         attempt_history.save()
 
         # If the user piece positions are correct

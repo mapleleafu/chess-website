@@ -73,6 +73,8 @@
             {% endfor %}
         </div>
     </div>
-    <button id="loadMoreGames" class="btn register">More Games</button>
+    {% if more_games %}
+        <button id="loadMoreGames" class="btn register">More Games</button>
+    {% endif %}
     <div class="modal-section"></div>
 {% endblock %}

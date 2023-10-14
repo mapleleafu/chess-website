@@ -41,8 +41,13 @@ class PlayedGameInline(admin.TabularInline):
 class CustomUserAdmin(UserAdmin):
     inlines = [PlayedGameInline]
 
+class AttemptHistoryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'played_game', 'played_at', 'success', 'game_is_on',)
+    list_filter = ('user', 'played_game', 'played_at')
+    search_fields = ('user__username', 'played_game__chess_game__fen_string')
+
+admin.site.register(AttemptHistory, AttemptHistoryAdmin)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(ChessGameBatch, ChessGameBatchAdmin)
 admin.site.register(ChessGame)
 admin.site.register(PlayedGame, PlayedGameAdmin)
-admin.site.register(AttemptHistory)

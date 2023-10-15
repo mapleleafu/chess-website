@@ -196,9 +196,8 @@ function loadModalContent(data) {
         const [day, month, year] = date.split("-").map(Number);
         const [hour, minute] = time.split(":").map(Number);
 
-        // Showing correct time in the modal depending on user's timezone
-        const fullDateObj = new Date(Date.UTC(2000 + year, month - 1, day, hour, minute));
-        const shortDate = `${fullDateObj.getDate()}/${fullDateObj.getMonth() + 1}`;
+        // Create a new Date object using the provided date and time
+        const fullDateObj = new Date(year + 2000, month - 1, day, hour, minute);
 
         const dateOptions = {
             weekday: "long",
@@ -211,15 +210,13 @@ function loadModalContent(data) {
             minute: "numeric",
             hour12: true,
         };
-        const longDate = `${fullDateObj.toLocaleDateString(
-            "en-US",
-            dateOptions
-        )} at ${fullDateObj.toLocaleTimeString("en-US", timeOptions)}`;
-
-        playedAt.dataset.fullDate = longDate;
+        const shortDate = `${fullDateObj.getDate()}/${fullDateObj.getMonth() + 1}`;
+        const longDate = `${fullDateObj.toLocaleDateString("en-US", dateOptions)} ${fullDateObj.toLocaleTimeString("en-US", timeOptions)}`;
+        
         playedAt.innerText = shortDate;
         playedAt.title = longDate;
         textContainer.appendChild(playedAt);
+        
 
         const boardWrapper = document.createElement("div");
         boardWrapper.classList.add("board-wrapper");

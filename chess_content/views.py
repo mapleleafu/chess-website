@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import pytz
 import json
 import random
 import datetime
@@ -128,7 +129,16 @@ def post_start_game(request):
         data = json.loads(request.body.decode('utf-8'))
         user = request.user
         chosenDifficulty = data['chosenDifficulty']
-        
+        timezone_offset_minutes = data.get('timezoneOffset')
+
+        if timezone_offset_minutes is not None:
+            timezone = pytz.timezone('UTC')
+            utc_dt = datetime.datetime.now().replace(tzinfo=timezone)
+            local_dt = utc_dt - datetime.timedelta(minutes=timezone_offset_minutes)
+        else:
+            local_dt = datetime.datetime.now()
+
+
         # Check if the user has any games with game_is_on=True and matching chosenDifficulty
         ongoing_games = PlayedGame.objects.filter(user=user, game_is_on=True, chosenDifficulty=chosenDifficulty)
         random_FEN = None
@@ -151,7 +161,8 @@ def post_start_game(request):
                 round_number=round_number,
                 error_count=error_count,
                 chosenDifficulty=chosenDifficulty,
-                fen_str=random_FEN
+                fen_str=random_FEN,
+                played_at=local_dt
             )
         else:
             # Retrieve fen_str from the ongoing game
@@ -205,7 +216,7 @@ def post_start_game(request):
             'round_number': ongoing_game.error_count,
             'fen_string': "abandoned", 
             'success': False,
-            'played_at': datetime.datetime.now().strftime('%H:%M %d-%m-%y')
+            'played_at': local_dt.strftime('%H:%M %d-%m-%y')
         }
         attempt_history.round_data.append(set_round_data)
         attempt_history.played_at = datetime.datetime.now()
@@ -223,13 +234,20 @@ def post_start_game(request):
 
         return JsonResponse(response_data)
 
-
 def put_submit_game(request):
     if request.method == 'PUT':
         user = request.user
         data = json.loads(request.body.decode('utf-8'))
         pieces_by_user = data['piecesByUser']
         chosenDifficulty = data['chosenDifficulty']
+        timezone_offset_minutes = data.get('timezoneOffset')
+
+        if timezone_offset_minutes is not None:
+            timezone = pytz.timezone('UTC')
+            utc_dt = datetime.datetime.now().replace(tzinfo=timezone)
+            local_dt = utc_dt - datetime.timedelta(minutes=timezone_offset_minutes)
+        else:
+            local_dt = datetime.datetime.now()
 
         # User sent a PUT request; decrement the error count by 1 to reverse the previous increment meant for handling game abandonment
         game_fen = request.session.get('game_fen')
@@ -275,7 +293,7 @@ def put_submit_game(request):
         new_round_data = {
             'round_number': ongoing_game.error_count + 1,
             'fen_string': list_to_fen(transformed_data_sorted), 
-            'played_at': datetime.datetime.now().strftime('%H:%M %d-%m-%y')
+            'played_at': local_dt.strftime('%H:%M %d-%m-%y')
         }
 
         # Initialize flag for existing round data
@@ -287,7 +305,7 @@ def put_submit_game(request):
                 round_data_exists = True
                 if existing_round['fen_string'] == "abandoned":
                     existing_round['fen_string'] = list_to_fen(transformed_data_sorted)
-                    existing_round['played_at'] = datetime.datetime.now().strftime('%H:%M %d-%m-%y')
+                    existing_round['played_at'] = local_dt.strftime('%H:%M %d-%m-%y')
                 break
 
         # If round data with this round number does not exist, append new one
@@ -295,7 +313,7 @@ def put_submit_game(request):
             new_round_data = {
                 'round_number': ongoing_game.error_count + 1,
                 'fen_string': list_to_fen(transformed_data_sorted),
-                'played_at': datetime.datetime.now().strftime('%H:%M %d-%m-%y')
+                'played_at': local_dt.strftime('%H:%M %d-%m-%y')
             }
 
             if attempt_history.round_data is None:

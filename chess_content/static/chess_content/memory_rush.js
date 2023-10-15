@@ -88,9 +88,14 @@ async function videoFunct(event) {
     const difficulties = ["easy", "medium", "hard"];
     chosenDifficulty = difficulties.find((diff) => videoName.includes(diff));
 
-    // Get user's time zone
-    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
+    let timezoneOffset;
+    try {
+        timezoneOffset = new Date().getTimezoneOffset();
+    } catch (e) {
+        console.error("Couldn't get timezone offset: ", e);
+        timezoneOffset = null;
+    }
+    
     const response = await fetch("/post_start_game", {
         method: "POST",
         headers: {
@@ -99,7 +104,7 @@ async function videoFunct(event) {
         },
         body: JSON.stringify({
             chosenDifficulty: chosenDifficulty,
-            user_timezone: userTimeZone,
+            timezoneOffset: timezoneOffset,
         }),
     });
 
@@ -315,7 +320,14 @@ function submitFunct() {
             mobileView: mobileView,
         };
     });
-    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    let timezoneOffset;
+    try {
+        timezoneOffset = new Date().getTimezoneOffset();
+    } catch (e) {
+        console.error("Couldn't get timezone offset: ", e);
+        timezoneOffset = null;
+    }    
 
     fetch("/put_submit_game", {
         method: "PUT",
@@ -326,7 +338,7 @@ function submitFunct() {
         body: JSON.stringify({
             chosenDifficulty: chosenDifficulty,
             piecesByUser: piecesByUser,
-            user_timezone: userTimeZone,
+            timezoneOffset: timezoneOffset,
         }),
     }).then((response) => {
         if (response.status === 200) {

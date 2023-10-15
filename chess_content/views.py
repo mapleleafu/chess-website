@@ -69,7 +69,7 @@ def game_history(request):
         })
 
     more_games = seen_games.count() > 12
-    return render(request, "chess_content/game_history.html", {'fen_data': fen_data, 'page': page, 'more_games': more_games})
+    return render(request, "chess_content/game_history.html", {'fen_data': fen_data, 'page': page, 'more_games': more_games, 'has_next_page': games.has_next()})
 
 
 def get_attempt_history(request):
@@ -137,7 +137,6 @@ def post_start_game(request):
             local_dt = utc_dt - datetime.timedelta(minutes=timezone_offset_minutes)
         else:
             local_dt = datetime.datetime.now()
-
 
         # Check if the user has any games with game_is_on=True and matching chosenDifficulty
         ongoing_games = PlayedGame.objects.filter(user=user, game_is_on=True, chosenDifficulty=chosenDifficulty)

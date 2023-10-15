@@ -543,8 +543,8 @@ $(document).ready(function () {
                 });
             });
 
-            // If there are no more games to load, hide the button
-            if (games.length === 0) {
+            const has_next_page = $(html).find("#has_next_page").val() === "True";
+            if (!has_next_page) {
                 $("#loadMoreGames").hide();
             }
         });

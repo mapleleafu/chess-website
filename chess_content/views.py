@@ -22,9 +22,6 @@ DIFFICULTIES = {
     'hard': {'countdown': 3, 'round': 3},
 }
 
-def catch_all(request):
-    return HttpResponseRedirect(reverse("home"))
-
 def home(request):
     # return redirect(request, "chess_content/memory_rush.html")
     message = request.session.get('message', None)

@@ -75,8 +75,8 @@ let randomFEN,
     viewportWidth,
     mobileView = false,
     try_count,
-    latest_attempt_fen = null;
-errorCount = 0;
+    latest_attempt_fen = null,
+    errorCount = 0;
 
 async function videoFunct(event) {
     const csrftoken = getCookie("csrftoken");
@@ -269,10 +269,14 @@ function countdownEndPlacementStart() {
         ".p1.tries"
     ).innerHTML = `Remaining tries: <br> <strong>${try_count}</strong>`;
     document.querySelector(".message_container").style.display = "flex";
-
+    if (mobileView === true) {
+        document.querySelectorAll(".cursor").forEach((cursor) => {
+            cursor.remove();
+        });
+    }
     // Making sure that startPositionFunct works properly by putting down a piece once
     if (gameOnFlag === false) {
-        image = document.querySelector(
+        const image = document.querySelector(
             'img[src="/static/chess_content/assets/pieces/wn.png"]'
         );
         image.click();
@@ -317,7 +321,6 @@ function submitFunct() {
             name: child.alt,
             left: child.offsetLeft,
             top: child.offsetTop,
-            mobileView: mobileView,
         };
     });
     
@@ -328,7 +331,6 @@ function submitFunct() {
         console.error("Couldn't get timezone offset: ", e);
         timezoneOffset = null;
     }    
-
     fetch("/put_submit_game", {
         method: "PUT",
         headers: {
@@ -338,6 +340,7 @@ function submitFunct() {
         body: JSON.stringify({
             chosenDifficulty: chosenDifficulty,
             piecesByUser: piecesByUser,
+            mobileView: mobileView,
             timezoneOffset: timezoneOffset,
         }),
     }).then((response) => {

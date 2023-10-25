@@ -16,6 +16,14 @@ import datetime
 
 from .models import User, ChessGame, PlayedGame, AttemptHistory
 
+DIFFICULTIES = {
+    'easy': {'countdown': 10, 'round': 10},
+    'medium': {'countdown': 5, 'round': 5},
+    'hard': {'countdown': 3, 'round': 3},
+}
+
+def catch_all(request):
+    return HttpResponseRedirect(reverse("home"))
 
 def home(request):
     # return redirect(request, "chess_content/memory_rush.html")
@@ -57,32 +65,78 @@ def game_history(request):
             }
             for attempt in attempts
         ]
-        fen_data.append({
-            'fen_string': game.chess_game.fen_string,
-            'success': game.success,
-            'played_at': game.played_at,
-            'game_is_on': game.game_is_on,
-            'error_count': game.error_count,
-            'gotCorrectRoundNumber': game.gotCorrectRoundNumber,
-            'chosenDifficulty': game.chosenDifficulty,
-            'attempts': attempts_data
-        })
+
+        if game.game_is_on:
+            fen_data.append({
+                'success': game.success,
+                'played_at': game.played_at,
+                'game_is_on': game.game_is_on,
+                'error_count': game.error_count,
+                'gotCorrectRoundNumber': game.gotCorrectRoundNumber,
+                'chosenDifficulty': game.chosenDifficulty,
+                'attempts': attempts_data
+            })
+        else:
+            fen_data.append({
+                'fen_string': game.chess_game.fen_string,
+                'success': game.success,
+                'played_at': game.played_at,
+                'game_is_on': game.game_is_on,
+                'error_count': game.error_count,
+                'gotCorrectRoundNumber': game.gotCorrectRoundNumber,
+                'chosenDifficulty': game.chosenDifficulty,
+                'attempts': attempts_data
+            })
 
     more_games = seen_games.count() > 12
     return render(request, "chess_content/game_history.html", {'fen_data': fen_data, 'page': page, 'more_games': more_games, 'has_next_page': games.has_next()})
 
-
 def get_attempt_history(request):
     if request.method == 'GET':
         user = request.user
+        difficulty = request.GET.get('difficulty', None)
         fen_string = request.GET.get('fen_string', None)
 
-        # Retrieve the AttemptHistory record for the user and the fen_string
-        attempt_history = AttemptHistory.objects.filter(user=user, fen_string=fen_string).first()
-
+        # Retrieve the AttemptHistory record for ongoing games and finished games
+        if (fen_string != None ):
+            attempt_history = AttemptHistory.objects.filter(user=user, fen_string=fen_string).first()
+        else:
+            attempt_history = AttemptHistory.objects.filter(
+                user=user, 
+                chosenDifficulty=difficulty,
+            ).last()
         if attempt_history:
+            results = []
+            if attempt_history.game_is_on == False:
+                new_round_data = []
+
+                for round_info in attempt_history.round_data:
+                    new_round = round_info.copy()  # Copy the original round_info to make changes to it
+                    user_fen_string = round_info['fen_string']
+                    if user_fen_string != "abandoned":
+                        user_fen_sorted = fen_to_board(user_fen_string)
+                        user_fen_sorted = sorted(user_fen_sorted, key=lambda x: (x['square'], x['name']))
+
+                        correct_fen_sorted = fen_to_board(fen_string)
+                        correct_fen_sorted = sorted(correct_fen_sorted, key=lambda x: (x['square'], x['name']))
+
+                        actual_correct_pieces, wrong_pieces, missing_pieces = compare_pieces(user_fen_sorted, correct_fen_sorted)
+                        
+                        # Convert lists to FEN
+                        actual_correct_pieces_fen = list_to_fen(actual_correct_pieces)
+                        wrong_pieces_fen = list_to_fen(wrong_pieces)
+                        missing_pieces_fen = list_to_fen(missing_pieces)
+                        
+                        new_round['fen_string'] = f"correct_pieces: {actual_correct_pieces_fen}, wrong_pieces: {wrong_pieces_fen}, missing_pieces: {missing_pieces_fen}"
+                    else:
+                        # For abandoned rounds, keep the 'fen_string' as "abandoned"
+                        new_round['fen_string'] = "abandoned"
+                        
+                    new_round_data.append(new_round)
+            else:
+                new_round_data = attempt_history.round_data
             return JsonResponse({
-                'round_data': attempt_history.round_data,
+                'round_data': new_round_data,
                 'total_round_number': attempt_history.total_round_number,
                 'game_is_on': attempt_history.game_is_on,
                 'chosenDifficulty': attempt_history.chosenDifficulty
@@ -91,6 +145,17 @@ def get_attempt_history(request):
             return JsonResponse({
                 'round_data': [],
             })
+
+def compare_pieces(user_pieces, correct_pieces):
+    actual_correct_pieces = [piece for piece in user_pieces if piece in correct_pieces]
+    wrong_pieces = [piece for piece in user_pieces if piece not in correct_pieces]
+    
+    for piece in actual_correct_pieces:
+        correct_pieces.remove(piece)
+        
+    missing_pieces = correct_pieces
+    
+    return actual_correct_pieces, wrong_pieces, missing_pieces
 
 def memory_rush(request):
     white_piece_filenames = ['wk.png', 'wq.png', 'wr.png', 'wb.png', 'wn.png', 'wp.png']
@@ -112,12 +177,6 @@ def memory_rush(request):
                    'message': message,
                    'message_type': message_type 
                    })
-
-DIFFICULTIES = {
-    'easy': {'countdown': 10, 'round': 10},
-    'medium': {'countdown': 5, 'round': 5},
-    'hard': {'countdown': 3, 'round': 3},
-}
 
 @csrf_exempt
 def post_start_game(request):
@@ -221,6 +280,11 @@ def post_start_game(request):
         attempt_history.played_at = datetime.datetime.now()
         attempt_history.save()
 
+        # Set game_is_on to False to prevent for potential game abandonment by the user
+        if (ongoing_game.error_count == ongoing_game.round_number):
+            attempt_history.game_is_on = False
+            attempt_history.save()
+
         response_data = {
             'countdown': countdown,
             'round': round_number,
@@ -238,6 +302,7 @@ def put_submit_game(request):
         user = request.user
         data = json.loads(request.body.decode('utf-8'))
         pieces_by_user = data['piecesByUser']
+        mobileView = data.get('mobileView', False)
         chosenDifficulty = data['chosenDifficulty']
         timezone_offset_minutes = data.get('timezoneOffset')
 
@@ -278,13 +343,11 @@ def put_submit_game(request):
             piece_name = piece_info['name']
             left = piece_info['left']
             top = piece_info['top']
-            mobile_view = piece_info.get('mobileView', False)
-            square = position_to_square(left, top, mobile_view)
+            square = position_to_square(left, top, mobileView)
             transformed_data.append({'name': piece_name, 'square': square})
 
         fen_position_sorted = fen_to_board(fen_str)
         transformed_data_sorted = sorted(transformed_data, key=lambda x: (x['square'], x['name']))
-
         # Sort fen_position_sorted before comparison
         fen_position_sorted = sorted(fen_position_sorted, key=lambda x: (x['square'], x['name']))
 
@@ -461,10 +524,10 @@ def fen_to_board(fen):
                 
     return board
 
-def position_to_square(left, top, mobile_view):
-    if (mobile_view == True):
+def position_to_square(left, top, mobileView):
+    if (mobileView == True):
         pieceSize = 50
-    elif (mobile_view == False):
+    elif (mobileView == False):
         pieceSize = 90
     # Calculate the column (letter) based on the left position
     column = chr(ord('a') + (left // pieceSize))

@@ -1,6 +1,4 @@
 from django.urls import path
-from django.urls import re_path
-
 from . import views
 
 urlpatterns = [
@@ -13,5 +11,4 @@ urlpatterns = [
     path('put_submit_game', views.put_submit_game, name='put_submit_game'),
     path('post_start_game', views.post_start_game, name='post_start_game'),
     path('get_attempt_history', views.get_attempt_history, name='get_attempt_history'),
-    re_path(r'^.*$', views.home),
 ]

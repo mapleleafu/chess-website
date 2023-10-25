@@ -32,8 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fenData = randomFEN();
         }
         // Convert FEN to board and place pieces
-        const boardFromFEN = fenToBoard(fenData);
-        placePiecesFromFEN(boardFromFEN, pieceContainer, dimensionValues);
+        placePiecesFromFEN(fenToBoard(fenData), pieceContainer, dimensionValues, 'normal');
     });
 
     let newestFirst = true; // Initialize the variable to true
@@ -110,19 +109,51 @@ function attemptIconClick(attemptIconWithGameNumber1, messageElements) {
 
 // Function to open the modal
 function openModal(element) {
-    fetch(`/get_attempt_history?fen_string=${encodeURIComponent(element.id)}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            loadModalContent(data);
+    if (element.id === "game_on") {
+        const gameInfoElement = element.closest('.game_info');
+        const difficulty = gameInfoElement ? gameInfoElement.getAttribute('data-difficulty') : null;
+        
+        if (difficulty) {
+            // Fetch the attempt history for ongoing games
+            fetch(`/get_attempt_history?difficulty=${encodeURIComponent(difficulty)}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                loadModalContent(data);
+            })
+            .catch((error) => {
+                console.log("Error:", error);
+            });
+        } else {
+            console.log("Difficulty not found!");
+        }
+    } else {
+        // Fetch the attempt history for finished games  
+        fetch(`/get_attempt_history?fen_string=${encodeURIComponent(element.id)}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
         })
-        .catch((error) => {
-            console.log("Error:", error);
+            .then((response) => response.json())
+            .then((data) => {
+                loadModalContent(data);
+            })
+            .catch((error) => {
+                console.log("Error:", error);
+            });
+
+        const modalSection = document.querySelector(".modal-section");
+        modalSection.style.display = "flex";
+
+        modalSection.addEventListener("click", () => {
+            hideModal();
         });
+    }
 
     const modalSection = document.querySelector(".modal-section");
     modalSection.style.display = "flex";
@@ -146,7 +177,6 @@ function loadModalContent(data) {
     innerModal.appendChild(innerFlexContainer);
 
     modalSection.appendChild(innerModal);
-
     for (let i = 0; i < data.round_data.length; i++) {
         const boardContainer = document.createElement("div");
         boardContainer.classList.add("board_container");
@@ -235,8 +265,21 @@ function loadModalContent(data) {
         });
 
         const fenData = data.round_data[i].fen_string;
-        const boardFromFEN = fenToBoard(fenData);
-        placePiecesFromFEN(boardFromFEN, pieceContainer, dimensionValues);
+        if (fenData === "abandoned" || data.game_is_on === true) {
+            placePiecesFromFEN(fenToBoard(fenData), pieceContainer, dimensionValues, 'normal');
+        } else {
+            const combinedFenData = data.round_data[i].fen_string;
+            
+            if (combinedFenData !== 'abandoned') {
+                const fenParts = combinedFenData.split(', ');
+                const correctFen = fenParts.find(part => part.startsWith('correct_pieces: ')).split(': ')[1];
+                const wrongFen = fenParts.find(part => part.startsWith('wrong_pieces: ')).split(': ')[1];
+                const missingFen = fenParts.find(part => part.startsWith('missing_pieces: ')).split(': ')[1];
+                placePiecesFromFEN(fenToBoard(wrongFen), pieceContainer, dimensionValues, 'wrong');
+                placePiecesFromFEN(fenToBoard(correctFen), pieceContainer, dimensionValues, 'correct');
+                placePiecesFromFEN(fenToBoard(missingFen), pieceContainer, dimensionValues, 'missing');
+            }
+        }
     }
 }
 
@@ -275,11 +318,7 @@ function showMessageOnLoad() {
     }
 }
 
-function displayErrorMessage(
-    errorMessage,
-    errorMessageSecond,
-    removeAfterTimeout
-) {
+function displayErrorMessage(errorMessage, errorMessageSecond,removeAfterTimeout) {
     if (!errorMessage) return;
 
     const messagesDiv = document.querySelector(".message_container");
@@ -344,7 +383,7 @@ function randomFEN() {
     return fen;
 }
 
-function placePiecesFromFEN(board, pieceContainer, dimensionValues) {
+function placePiecesFromFEN(board, pieceContainer, dimensionValues, fenType) {
     if (!board) {
         return;
     }
@@ -352,30 +391,20 @@ function placePiecesFromFEN(board, pieceContainer, dimensionValues) {
     const squareWidth = dimensionValues / 8;
     const squareHeight = dimensionValues / 8;
 
-    // Mapping of FEN pieces to their image URLs
-    const pieceToImage = {
-        // White pieces
-        K: "/static/chess_content/assets/pieces/wk.png",
-        Q: "/static/chess_content/assets/pieces/wq.png",
-        R: "/static/chess_content/assets/pieces/wr.png",
-        N: "/static/chess_content/assets/pieces/wn.png",
-        B: "/static/chess_content/assets/pieces/wb.png",
-        P: "/static/chess_content/assets/pieces/wp.png",
-
-        // Black pieces
-        k: "/static/chess_content/assets/pieces/bk.png",
-        q: "/static/chess_content/assets/pieces/bq.png",
-        r: "/static/chess_content/assets/pieces/br.png",
-        n: "/static/chess_content/assets/pieces/bn.png",
-        b: "/static/chess_content/assets/pieces/bb.png",
-        p: "/static/chess_content/assets/pieces/bp.png",
-    };
-
-    pieceContainer.innerHTML = ""; // Clear any existing pieces in the container
+    // Generate mapping of FEN piece types to their corresponding image URLs based on the given fenType
+    const baseUrl = "static/chess_content/assets/pieces";
+    const pieces = ["K", "Q", "R", "N", "B", "P", "k", "q", "r", "n", "b", "p"];
+    let folder = '';
+    
+    const pieceToImage = Object.fromEntries(
+        pieces.map(piece => {
+            const color = piece === piece.toUpperCase() ? 'w' : 'b';
+            return [piece, `${baseUrl}${folder}/${color}${piece.toLowerCase()}.png`];
+        })
+    );
     for (let y = 0; y < board.length; y++) {
         for (let x = 0; x < board[y].length; x++) {
             const piece = board[y][x];
-
             if (piece) {
                 const duplicate = document.createElement("img");
                 duplicate.src = pieceToImage[piece];
@@ -395,7 +424,32 @@ function placePiecesFromFEN(board, pieceContainer, dimensionValues) {
                 });
                 duplicate.classList.add("profile_piece");
                 duplicate.setAttribute("draggable", "false");
-                pieceContainer.appendChild(duplicate);
+
+                if (fenType === 'missing') {
+                    duplicate.style.opacity = "0.5";
+                } else if (fenType === 'wrong') {
+                    duplicate.style.backgroundColor = "#ff000073"
+                } else if (fenType === 'correct') {
+                    duplicate.style.backgroundColor = "#1bff0073"
+                }
+
+                // Algorithm to check if there is already an image at the coordinates
+                let shouldAppend = true; 
+                const imgs = pieceContainer.querySelectorAll('img');
+
+                for (const img of imgs) {
+                    const left = parseInt(img.style.left, 10);
+                    const top = parseInt(img.style.top, 10);
+
+                    if (left === x * squareWidth && top === y * squareHeight) {
+                        shouldAppend = false; 
+                        break;
+                    }
+                }
+
+                if (shouldAppend) {
+                    pieceContainer.appendChild(duplicate);
+                }
             }
         }
     }
@@ -460,10 +514,10 @@ $(document).ready(function () {
         copyToClipboard(text);
 
         $(this).find(".fa-clipboard").hide();
-        $(this).find(".fa-check").show();
+        $(this).find(".check-icon").show();
 
         setTimeout(() => {
-            $(this).find(".fa-check").hide();
+            $(this).find(".check-icon").hide();
             $(this).find(".fa-clipboard").show();
         }, 3000);
     });
@@ -519,12 +573,19 @@ $(document).ready(function () {
                     openModal(attemptIcon);
                 });
 
-                const fenData = game.getAttribute("data-fen");
+                let fenData = game.getAttribute("data-fen");
+                const copyButton = game.querySelector(".game_info .copy");
+
+                if (fenData === "game_on") {
+                    fenData = randomFEN();
+                    copyButton.remove();
+                }
                 const boardFromFEN = fenToBoard(fenData);
                 placePiecesFromFEN(
                     boardFromFEN,
                     pieceContainer,
-                    dimensionValues
+                    dimensionValues,
+                    "normal"
                 );
 
                 $(game)
@@ -534,10 +595,10 @@ $(document).ready(function () {
                     copyToClipboard(text);
 
                     $(this).find(".fa-clipboard").hide();
-                    $(this).find(".fa-check").show();
+                    $(this).find(".check-icon").show();
 
                     setTimeout(() => {
-                        $(this).find(".fa-check").hide();
+                        $(this).find(".check-icon").hide();
                         $(this).find(".fa-clipboard").show();
                     }, 3000);
                 });

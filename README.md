@@ -18,11 +18,11 @@ Memory Rush is a dynamic web-based game designed to enhance and challenge your m
 
 - **Gameplay Experience:**
 
-  ![Gameplay GIF](chess_content/static/chess_content/assets/readme_images/gameplay.gif)
+  ![Gameplay GIF](chess_content/static/chess_content/assets/readme_files/gameplay.gif)
 
 - **Detailed Attempt Feedback:**
 
-  ![Attempt History GIF](chess_content/static/chess_content/assets/readme_images/attempt_history.gif)
+  ![Attempt History GIF](chess_content/static/chess_content/assets/readme_files/attempt_history.gif)
 
 ## Try It Now
 
